@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linda's Ocean Adventure</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <!-- Game Intro Screen -->
+    <div id="intro-screen" class="screen">
+        <div class="intro-content">
+            <h1>� Linda's Ocean Adventure 🐟</h1>
+            <div class="story">
+                <p>Welcome! Meet Linda the fish! 🐠</p>
+                <p>Linda got lost in the deep ocean and needs to get home to her fishbowl!</p>
+                <p><strong>How to Win Each Level:</strong> Collect all 8 fish food pellets 🟤</p>
+                <p><strong>Watch Out:</strong> The dark blue water at the bottom is dangerous!</p>
+                <p><strong>Each level:</strong> The danger zone rises, giving you less safe space!</p>
+                <p><strong>Controls:</strong> Use Arrow Keys (↑ ↓ ← →) to swim</p>
+                <p><strong>Goal:</strong> Survive 5 levels, defeat the boss, and get Linda home!</p>
+            </div>
+            <button id="start-button" class="game-button">Start Adventure</button>
+            <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen hidden">
+        <!-- Game Info Bar -->
+        <div class="game-info">
+            <div class="info-item">
+                <span class="label">Level:</span>
+                <span id="level-display" class="value">1</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Pellets:</span>
+                <span id="score-display" class="value">0/8</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Lives:</span>
+                <span id="lives-display" class="value">❤️❤️❤️</span>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <div id="game-canvas">
+            <!-- Player and enemies will be added dynamically by JavaScript -->
+        </div>
+
+        <!-- Level Complete Message -->
+        <div id="level-complete" class="message-overlay hidden">
+            <div class="message-content">
+                <h2>🎉 Level Complete! 🎉</h2>
+                <p>Get ready for the next challenge!</p>
+                <button id="next-level-button" class="game-button" style="margin-top: 20px;">Next Level</button>
+            </div>
+        </div>
+        
+        <!-- Power-Up Message (After Level 5) -->
+        <div id="power-up" class="message-overlay hidden">
+            <div class="message-content">
+                <h2>⚡ POWER UP! ⚡</h2>
+                <p style="font-size: 1.2rem; margin: 20px 0;">🐟 <strong>Linda is now an almighty fish!</strong> 🐟</p>
+                <p style="font-size: 1.1rem;">She can now shoot water bubbles! 💧</p>
+                <p style="margin-top: 15px;"><strong>Press SPACEBAR</strong> to shoot bubbles from her mouth!</p>
+                <p style="margin-top: 10px; color: #e74c3c;">Use this power to defeat the boss!</p>
+                <button id="start-boss-button" class="game-button" style="margin-top: 25px;">Face the Boss!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Failed Screen -->
+    <div id="level-failed" class="screen hidden">
+        <div class="message-content" style="max-width: 500px; margin: auto;">
+            <h2>💔 No Lives Left 💔</h2>
+            <p>Want to try this level again?</p>
+            <div style="margin-top: 20px;">
+                <button id="retry-level-button" class="game-button">Retry Level</button>
+                <button id="quit-level-button" class="game-button" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">Back to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="win-screen" class="screen hidden">
+        <div class="win-content">
+            <h1>🏆 Linda Made It Home! 🏆</h1>
+            <div class="fishbowl">
+                <div class="fish-home">🐟</div>
+                <div class="bubbles">
+                    <span>○</span>
+                    <span>○</span>
+                    <span>○</span>
+                </div>
+            </div>
+            <p class="big-message">Linda defeated the boss and swam all the way home!</p>
+            <p class="big-message">She's safe in her cozy fishbowl now! 🎉</p>
+            <p>Final Score: <span id="final-score" class="score-big">0</span></p>
+            <div class="celebration">🎊 🎉 ✨ 🌟 ⭐ 🌟 ✨ 🎉 🎊</div>
+            <button id="play-again-button" class="game-button">Play Again</button>
+            <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="screen hidden">
+        <div class="gameover-content">
+            <h1>💥 Game Over 💥</h1>
+            <p>Linda's ocean journey has ended...</p>
+            <p>Score: <span id="gameover-score" class="score-big">0</span></p>
+            <button id="retry-button" class="game-button">Try Again</button>
+            <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
