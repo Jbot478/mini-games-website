@@ -15,6 +15,25 @@ const CONFIG = {
     LEVEL_DURATION: 20000, // 20 seconds per level
 };
 
+// Store original config for responsive scaling
+const ORIGINAL_CONFIG = { ...CONFIG };
+
+// Enemy ID counter for unique IDs
+let enemyIdCounter = 0;
+
+// Adjust canvas size for smaller screens
+function adjustCanvasSize() {
+    const rect = gameCanvas.getBoundingClientRect();
+    if (rect.width < ORIGINAL_CONFIG.CANVAS_WIDTH) {
+        const scale = rect.width / ORIGINAL_CONFIG.CANVAS_WIDTH;
+        CONFIG.CANVAS_WIDTH = rect.width;
+        CONFIG.CANVAS_HEIGHT = rect.height;
+        CONFIG.PLAYER_SIZE = Math.floor(ORIGINAL_CONFIG.PLAYER_SIZE * scale);
+        CONFIG.ENEMY_SIZE = Math.floor(ORIGINAL_CONFIG.ENEMY_SIZE * scale);
+        CONFIG.PLAYER_SPEED = Math.max(4, Math.floor(ORIGINAL_CONFIG.PLAYER_SPEED * scale));
+    }
+}
+
 // Game State
 let gameState = {
     currentLevel: 1,
@@ -92,6 +111,9 @@ function handleKeyUp(e) {
  * Start the game
  */
 function startGame() {
+    // Adjust canvas size for responsive design
+    adjustCanvasSize();
+    
     // Hide intro, show game
     screens.intro.classList.add('hidden');
     screens.game.classList.remove('hidden');
@@ -164,7 +186,7 @@ function spawnEnemies(count) {
     
     for (let i = 0; i < count; i++) {
         const enemy = {
-            id: Date.now() + i,
+            id: ++enemyIdCounter,
             x: Math.random() * (CONFIG.CANVAS_WIDTH - CONFIG.ENEMY_SIZE),
             y: Math.random() * (CONFIG.CANVAS_HEIGHT * 0.6), // Keep in upper area
             velocityX: (Math.random() - 0.5) * (2 + gameState.currentLevel * 0.5),
@@ -190,7 +212,7 @@ function spawnEnemies(count) {
  */
 function clearEnemies() {
     gameState.enemies.forEach(enemy => {
-        if (enemy.element) {
+        if (enemy.element && enemy.element.parentNode === gameCanvas) {
             gameCanvas.removeChild(enemy.element);
         }
     });
@@ -400,7 +422,7 @@ function handleCollision() {
  */
 function updateLivesDisplay() {
     const hearts = '❤️'.repeat(Math.max(0, gameState.lives));
-    livesDisplay.textContent = hearts || '💔';
+    livesDisplay.textContent = hearts || '';
 }
 
 /**
