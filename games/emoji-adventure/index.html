@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Space Adventure</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <!-- Game Intro Screen -->
+    <div id="intro-screen" class="screen">
+        <div class="intro-content">
+            <h1>🚀 Emoji Space Adventure 🚀</h1>
+            <div class="story">
+                <p>Welcome, brave emoji explorer! 🧑‍🚀</p>
+                <p>Your mission: Navigate through the dangerous space sectors,</p>
+                <p>dodge the evil space bugs 🐛, and reach the final frontier!</p>
+                <p><strong>Controls:</strong> Use Arrow Keys (↑ ↓ ← →) to move</p>
+                <p><strong>Goal:</strong> Survive and reach higher levels!</p>
+            </div>
+            <button id="start-button" class="game-button">Start Adventure</button>
+            <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen hidden">
+        <!-- Game Info Bar -->
+        <div class="game-info">
+            <div class="info-item">
+                <span class="label">Level:</span>
+                <span id="level-display" class="value">1</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Score:</span>
+                <span id="score-display" class="value">0</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Lives:</span>
+                <span id="lives-display" class="value">❤️❤️❤️</span>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <div id="game-canvas">
+            <!-- Player and enemies will be added dynamically by JavaScript -->
+        </div>
+
+        <!-- Level Complete Message -->
+        <div id="level-complete" class="message-overlay hidden">
+            <div class="message-content">
+                <h2>🎉 Level Complete! 🎉</h2>
+                <p>Get ready for the next challenge!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="win-screen" class="screen hidden">
+        <div class="win-content">
+            <h1>🏆 Congratulations! 🏆</h1>
+            <p class="big-message">You conquered all the space sectors!</p>
+            <p>Final Score: <span id="final-score" class="score-big">0</span></p>
+            <div class="celebration">🎊 🎉 ✨ 🌟 ⭐ 🌟 ✨ 🎉 🎊</div>
+            <button id="play-again-button" class="game-button">Play Again</button>
+            <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="screen hidden">
+        <div class="gameover-content">
+            <h1>💥 Game Over 💥</h1>
+            <p>Your space journey has ended...</p>
+            <p>Score: <span id="gameover-score" class="score-big">0</span></p>
+            <button id="retry-button" class="game-button">Try Again</button>
+            <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
