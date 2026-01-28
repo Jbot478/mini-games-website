@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>This 8 Ball Hates You</title>
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+
+    <!-- Stars background -->
+    <div class="stars"></div>
+
+    <main class="container">
+        <h1>🎱 This 8 Ball Hates You</h1>
+        <p class="subtitle">Ask a question. Lower your expectations.</p>
+
+        <div class="question-box">
+            <input
+                type="text"
+                id="questionInput"
+                placeholder="Ask your questionable life choice here…"
+            />
+            <button id="askButton">Ask your dumb question 😒</button>
+        </div>
+
+        <div class="eight-ball" id="eightBall">
+            <div class="answer" id="answerText">
+                <span class="eight-number">8</span>
+            </div>
+        </div>
+
+        <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+    </main>
+
+    <script src="game.js"></script>
+</body>
+</html>
