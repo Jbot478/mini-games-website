@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barnyard Brawl - Farm Animal Fighter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="main-menu" class="screen active">
+        <div class="menu-content">
+            <h1 class="game-title">
+                <span class="title-word">BARNYARD</span>
+                <span class="title-word">BRAWL</span>
+            </h1>
+            <p class="subtitle">Where Farm Fights Get REAL!</p>
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="showInstructions(1)">
+                    <span>1 PLAYER</span>
+                    <small>vs Computer</small>
+                </button>
+                <button class="menu-btn" onclick="showInstructions(2)">
+                    <span>2 PLAYERS</span>
+                    <small>Local Battle</small>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Screen -->
+    <div id="instructions" class="screen">
+        <div class="instructions-content">
+            <h2 class="instructions-title">HOW TO PLAY</h2>
+
+            <div class="controls-layout">
+                <div class="player-controls">
+                    <h3>PLAYER 1 CONTROLS</h3>
+                    <div class="control-list">
+                        <div class="control-item">
+                            <span class="key">← →</span>
+                            <span class="action">Move Left/Right</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">↑</span>
+                            <span class="action">Jump (Press twice for double jump!)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">↓</span>
+                            <span class="action">Block (Reduces damage by 70%)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">SHIFT</span>
+                            <span class="action">Normal Attack</span>
+                        </div>
+                        <div class="control-item highlight">
+                            <span class="key">SPACE</span>
+                            <span class="action">SPECIAL ATTACK! 💥</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">ENTER</span>
+                            <span class="action">Pause Game</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vs-divider-instructions">VS</div>
+
+                <div class="player-controls" id="player2-controls">
+                    <h3 id="p2-controls-title">PLAYER 2 CONTROLS</h3>
+                    <div class="control-list">
+                        <div class="control-item">
+                            <span class="key">A D</span>
+                            <span class="action">Move Left/Right</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">W</span>
+                            <span class="action">Jump (Press twice for double jump!)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">S</span>
+                            <span class="action">Block (Reduces damage by 70%)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">Q</span>
+                            <span class="action">Normal Attack</span>
+                        </div>
+                        <div class="control-item highlight">
+                            <span class="key">E</span>
+                            <span class="action">SPECIAL ATTACK! 💥</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="key">TAB</span>
+                            <span class="action">Pause Game</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-tips">
+                <h4>💡 TIPS:</h4>
+                <ul>
+                    <li>Special attacks are powerful but have a <strong>3-second cooldown</strong></li>
+                    <li>You must be <strong>close to your opponent</strong> to land hits</li>
+                    <li>Win by reducing opponent's health to 0 or having more health when time runs out</li>
+                    <li>Each character has unique stats - try them all!</li>
+                </ul>
+            </div>
+
+            <button class="continue-btn" onclick="continueToCharacterSelect()">
+                CHOOSE YOUR FIGHTERS!
+            </button>
+            <button class="back-btn" onclick="backToMenu()">Back to Menu</button>
+        </div>
+    </div>
+
+    <!-- Character Selection Screen -->
+    <div id="character-select" class="screen">
+        <div class="select-container">
+            <h2 class="select-title">CHOOSE YOUR FIGHTER</h2>
+
+            <div class="player-selections">
+                <div class="player-box">
+                    <h3>PLAYER 1</h3>
+                    <div id="p1-preview" class="character-preview">
+                        <div class="preview-placeholder">?</div>
+                        <p>Select a character</p>
+                    </div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="player-box">
+                    <h3 id="p2-label">PLAYER 2</h3>
+                    <div id="p2-preview" class="character-preview">
+                        <div class="preview-placeholder">?</div>
+                        <p>Select a character</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="character-grid" id="character-grid">
+                <!-- Characters will be populated by JS -->
+            </div>
+
+            <button id="fight-btn" class="fight-button" onclick="startFight()" disabled>
+                START FIGHT!
+            </button>
+            <button class="back-btn" onclick="backToMenu()">Back to Menu</button>
+        </div>
+    </div>
+
+    <!-- Character Intro Cutscene -->
+    <div id="intro-cutscene" class="screen">
+        <div class="cutscene-content">
+            <div class="fighter-intro left">
+                <div class="fighter-sprite" id="intro-p1-sprite"></div>
+                <h2 id="intro-p1-name"></h2>
+                <p id="intro-p1-story"></p>
+            </div>
+            <div class="vs-splash">VS</div>
+            <div class="fighter-intro right">
+                <div class="fighter-sprite" id="intro-p2-sprite"></div>
+                <h2 id="intro-p2-name"></h2>
+                <p id="intro-p2-story"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fight Arena -->
+    <div id="fight-arena" class="screen">
+        <div class="arena-hud">
+            <div class="player-hud left">
+                <div class="player-name" id="p1-name-hud">Player 1</div>
+                <div class="health-container">
+                    <div class="health-bar">
+                        <div class="health-fill" id="p1-health"></div>
+                    </div>
+                    <div class="health-text" id="p1-health-text">100%</div>
+                </div>
+            </div>
+
+            <div class="timer-container">
+                <div class="round-display">ROUND <span id="round-number">1</span></div>
+                <div class="timer" id="timer">99</div>
+            </div>
+
+            <div class="player-hud right">
+                <div class="player-name" id="p2-name-hud">Player 2</div>
+                <div class="health-container">
+                    <div class="health-bar">
+                        <div class="health-fill" id="p2-health"></div>
+                    </div>
+                    <div class="health-text" id="p2-health-text">100%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arena-floor" id="arena-floor">
+            <!-- Players will be added here by JS -->
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="pause-overlay">
+            <div class="pause-content">
+                <h2>PAUSED</h2>
+                <button class="pause-btn" onclick="resumeGame()">Resume Fight</button>
+                <button class="pause-btn" onclick="restartFight()">Restart Fight</button>
+                <button class="pause-btn" onclick="quitToMenu()">Quit to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="screen">
+        <div class="victory-content">
+            <div class="winner-display">
+                <h1 class="victory-title" id="victory-title">WINNER!</h1>
+                <div class="winner-sprite" id="winner-sprite"></div>
+                <h2 class="winner-name" id="winner-name"></h2>
+                <p class="victory-quote" id="victory-quote"></p>
+            </div>
+            <div class="victory-buttons">
+                <button class="menu-btn" onclick="rematch()">REMATCH</button>
+                <button class="menu-btn" onclick="backToMenu()">MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

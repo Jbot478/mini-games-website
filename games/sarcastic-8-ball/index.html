@@ -2,41 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>This 8 Ball Hates You</title>
-
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="game.css" />
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <main class="page">
+        <header class="header">
+            <h1>🎱 This 8 Ball Hates You</h1>
+            <p>Ask a question. Regret it. Repeat.</p>
+        </header>
 
-    <!-- Stars background -->
-    <div class="stars"></div>
-
-    <main class="container">
-        <h1>🎱 This 8 Ball Hates You</h1>
-        <p class="subtitle">Ask a question. Lower your expectations.</p>
-
-        <div class="question-box">
-            <input
-                type="text"
-                id="questionInput"
-                placeholder="Ask your questionable life choice here…"
-            />
-            <button id="askButton">Ask your dumb question 😒</button>
-        </div>
-
-        <div class="eight-ball" id="eightBall">
-            <div class="answer" id="answerText">
-                <span class="eight-number">8</span>
+        <section class="game-card">
+            <div class="ball" aria-live="polite" aria-atomic="true">
+                <div class="ball-inner">
+                    <span id="placeholder" aria-hidden="true">8</span>
+                    <span id="answer">Ask me something.</span>
+                </div>
             </div>
-        </div>
 
-        <a href="../../index.html" class="back-link">← Back to Games Hub</a>
+            <div class="controls">
+                <label for="question" class="label">Your questionable life choice:</label>
+                <input id="question" type="text" placeholder="Are you mad at me?" />
+                <button id="ask" class="button">Shake the 8 Ball</button>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <a class="back" href="../../index.html">⬅ Back to Games</a>
+        </footer>
     </main>
 
-    <script src="game.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
