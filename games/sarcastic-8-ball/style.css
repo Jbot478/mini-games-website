@@ -1,0 +1,263 @@
+:root {
+    color-scheme: dark;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #1a0a2e 0%, #16213e 25%, #2d1b4e 50%, #1a0a2e 75%, #0f0520 100%);
+    color: #f4f4f4;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px),
+        radial-gradient(circle, white 1px, transparent 1px);
+    background-size:
+        200px 200px,
+        300px 300px,
+        250px 250px,
+        350px 350px,
+        280px 280px,
+        320px 320px,
+        270px 270px,
+        310px 310px,
+        290px 290px,
+        330px 330px,
+        260px 260px,
+        340px 340px,
+        300px 300px,
+        250px 250px,
+        320px 320px;
+    background-position:
+        0 0,
+        40px 60px,
+        130px 270px,
+        70px 100px,
+        150px 140px,
+        90px 10px,
+        130px 80px,
+        0 140px,
+        90px 210px,
+        130px 60px,
+        70px 240px,
+        150px 0,
+        50px 50px,
+        100px 100px,
+        200px 50px;
+    pointer-events: none;
+    z-index: 0;
+    animation: twinkle 6s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.page {
+    width: min(720px, 100%);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.header h1 {
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: #c7c7c7;
+    margin-top: 0;
+}
+
+.game-card {
+    margin-top: 32px;
+    background: transparent;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: none;
+}
+
+.ball {
+    width: 340px;
+    height: 340px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.3), transparent 40%),
+        radial-gradient(circle at 50% 60%, #1a1a1a 0%, #050505 65%, #000000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-size: 1.1rem;
+    text-align: center;
+    border: 8px solid #0b0b0b;
+    box-shadow:
+        inset -30px -35px 50px rgba(0, 0, 0, 0.8),
+        inset 15px 15px 40px rgba(255, 255, 255, 0.08),
+        0 25px 60px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.ball::after {
+    content: "";
+    position: absolute;
+    top: 25px;
+    left: 40px;
+    width: 100px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    filter: blur(3px);
+}
+
+.ball-inner {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #ffffff, #dfeeff 55%, #b7d4ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #1b1b1b;
+    font-weight: 700;
+    text-transform: none;
+    position: relative;
+    box-shadow:
+        0 0 35px rgba(64, 140, 255, 0.85),
+        0 0 70px rgba(64, 140, 255, 0.55),
+        inset 0 15px 30px rgba(255, 255, 255, 0.9);
+    animation: glowPulse 2.4s ease-in-out infinite;
+}
+
+.ball-inner #placeholder {
+    font-size: 5.2rem;
+    color: #0d1b3f;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    position: absolute;
+}
+
+.ball-inner #answer {
+    font-size: 1rem;
+    padding: 0 12px;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.ball.show-answer #answer {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.ball.show-answer #placeholder {
+    opacity: 0.08;
+}
+
+.ball.shake {
+    animation: shake 0.6s ease-in-out;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 25px rgba(64, 140, 255, 0.75),
+            0 0 50px rgba(64, 140, 255, 0.45),
+            inset 0 10px 20px rgba(255, 255, 255, 0.9);
+    }
+    50% {
+        box-shadow:
+            0 0 35px rgba(64, 140, 255, 0.9),
+            0 0 70px rgba(64, 140, 255, 0.7),
+            inset 0 10px 20px rgba(255, 255, 255, 0.95);
+    }
+}
+
+@keyframes shake {
+    0% { transform: translateX(0) rotate(0deg); }
+    15% { transform: translateX(-8px) rotate(-3deg); }
+    30% { transform: translateX(8px) rotate(3deg); }
+    45% { transform: translateX(-6px) rotate(-2deg); }
+    60% { transform: translateX(6px) rotate(2deg); }
+    75% { transform: translateX(-4px) rotate(-1deg); }
+    100% { transform: translateX(0) rotate(0deg); }
+}
+
+.controls {
+    display: grid;
+    gap: 12px;
+}
+
+.label {
+    font-weight: 600;
+    text-align: left;
+}
+
+input {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+}
+
+.button {
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #7b2ff7;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.button:hover {
+    background: #9a5bff;
+    transform: translateY(-2px);
+}
+
+.footer {
+    margin-top: 24px;
+}
+
+.back {
+    color: #bfa7ff;
+    text-decoration: none;
+}
+
+.back:hover {
+    text-decoration: underline;
+}
