@@ -191,7 +191,7 @@ const characters = [
     },
     {
         id: 'mooana',
-        name: 'Mooana the Diva Cow',
+        name: 'Mooana the Cow',
         emoji: '🐄',
         backstory: 'Mooana thinks she\'s a Disney princess trapped in a cow\'s body. She fights with grace, style, and devastating kicks that could send you to the moon!',
         special: 'Hoof of Fury',
@@ -212,7 +212,7 @@ const characters = [
     {
         id: 'woolly',
         name: 'Woolly the Sheep',
-        emoji: '�양',
+        emoji: '🐑',
         backstory: 'Woolly is sick of being sheared every spring and losing his fabulous fleece. He\'s woolly furious and ready to ram some sense into everyone!',
         special: 'Woolly Whirlwind',
         specialEmoji: '🌀',
@@ -241,6 +241,8 @@ const characters = [
     }
 ];
 
+const pressedKeys = new Set();
+
 // ==================== PLAYER PHYSICS ====================
 class Player {
     constructor(character, playerNum, isAI = false) {
@@ -267,6 +269,7 @@ class Player {
     createElement() {
         const player = document.createElement('div');
         player.className = 'player';
+        player.style.setProperty('--facing', this.facing);
         player.innerHTML = `<div class="player-sprite">${this.character.emoji}</div>`;
         player.style.left = this.x + 'px';
         document.getElementById('arena-floor').appendChild(player);
@@ -303,11 +306,12 @@ class Player {
         // Face opponent
         if (opponent) {
             this.facing = this.x < opponent.x ? 1 : -1;
+            this.element.style.setProperty('--facing', this.facing);
         }
 
         // Update position
         this.element.style.left = this.x + 'px';
-        this.element.style.bottom = (120 + this.y) + 'px';
+        this.element.style.bottom = (120 - this.y) + 'px';
         // Characters naturally face each other based on emoji direction
 
         // AI behavior
@@ -356,9 +360,10 @@ class Player {
         this.velocityX = direction * 8;
     }
 
-    jump() {
+    jump(direction = 0) {
         if (this.jumpCount < 2 && !this.blocking) {
-            this.velocityY = -18;
+            this.velocityY = -15;
+            this.velocityX = direction * 10;
             this.grounded = false;
             this.jumpCount++;
             this.element.classList.add('jumping');
@@ -409,7 +414,7 @@ class Player {
                 effect.className = 'special-effect';
                 effect.textContent = this.character.specialEmoji;
                 effect.style.left = (this.x + Math.random() * 50 - 25) + 'px';
-                effect.style.bottom = (200 + this.y + Math.random() * 50) + 'px';
+                effect.style.bottom = (200 - this.y + Math.random() * 50) + 'px';
                 effect.style.fontSize = (3 + Math.random() * 2) + 'rem';
                 document.getElementById('arena-floor').appendChild(effect);
 
@@ -537,6 +542,9 @@ function backToMenu() {
     }
     if (gameState.gameLoop) {
         cancelAnimationFrame(gameState.gameLoop);
+    }
+    if (gameState.timerInterval) {
+        clearInterval(gameState.timerInterval);
     }
     showScreen('main-menu');
 }
@@ -701,10 +709,23 @@ function setupControls() {
     document.addEventListener('keyup', handleKeyUp);
 }
 
+function getJumpDirection(playerNum) {
+    if (playerNum === 1) {
+        if (pressedKeys.has('arrowleft')) return -1;
+        if (pressedKeys.has('arrowright')) return 1;
+        return 0;
+    }
+
+    if (pressedKeys.has('a')) return -1;
+    if (pressedKeys.has('d')) return 1;
+    return 0;
+}
+
 function handleKeyDown(e) {
     if (gameState.paused && e.key !== 'Enter') return;
 
     const key = e.key.toLowerCase();
+    pressedKeys.add(key);
 
     // Player 1 controls (Arrow keys + Shift/Space + Enter)
     if (key === 'arrowright') {
@@ -712,7 +733,7 @@ function handleKeyDown(e) {
     } else if (key === 'arrowleft') {
         gameState.player1.move(-1);
     } else if (key === 'arrowup') {
-        gameState.player1.jump();
+        gameState.player1.jump(getJumpDirection(1));
     } else if (key === 'arrowdown') {
         gameState.player1.block();
     } else if (key === 'shift') {
@@ -732,7 +753,7 @@ function handleKeyDown(e) {
         } else if (key === 'a') {
             gameState.player2.move(-1);
         } else if (key === 'w') {
-            gameState.player2.jump();
+            gameState.player2.jump(getJumpDirection(2));
         } else if (key === 's') {
             gameState.player2.block();
         } else if (key === 'q') {
@@ -747,7 +768,7 @@ function handleKeyDown(e) {
 }
 
 function handleKeyUp(e) {
-    // Nothing needed for now
+    pressedKeys.delete(e.key.toLowerCase());
 }
 
 // ==================== PAUSE MENU ====================
