@@ -237,13 +237,13 @@ class Level02_SpaceCombat {
                 enemy.lastHitTime = Date.now();  // Prevent spam damage
                 console.log(`💢 Rua hit by enemy! Distance: ${this.getDistance(this.rua, enemy).toFixed(1)}px Health: ${this.rua.health}/5`);
                 audioSystem.playSFX('hit');
-                
+
                 if (this.rua.health <= 0) {
                     console.log('💀 Rua died in space!');
                     this.dead = true;  // Mark as dead, triggers restart
                 }
             }
-            
+
             // Reset hit cooldown after 500ms
             if (enemy.lastHitTime && Date.now() - enemy.lastHitTime > 500) {
                 enemy.lastHitTime = null;
@@ -270,7 +270,7 @@ class Level02_SpaceCombat {
         if (this.weaponBox) {
             // NO spinning - only slight tilt for drama
             this.weaponBox.rotation = 0.05;  // Slight tilt, not spinning
-            
+
             // Box enters from top VERY slowly
             const targetX = this.rua.x;
             const targetY = Math.max(120, this.rua.y - 280);  // Hover above Rua

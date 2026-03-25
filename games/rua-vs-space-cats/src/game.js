@@ -333,6 +333,14 @@ window.addEventListener('DOMContentLoaded', () => {
         const canvasX = (x / rect.width) * 1200;
         const canvasY = (y / rect.height) * 800;
 
+        // Let the active level handle click interactions first (e.g., puzzle cards)
+        if (window.game.currentLevel && typeof window.game.currentLevel.handleClick === 'function') {
+            const handled = window.game.currentLevel.handleClick(canvasX, canvasY);
+            if (handled) {
+                return;
+            }
+        }
+
         // Check button clicks
         // Previous button: 990-1080, 65-95
         if (canvasX >= 990 && canvasX <= 1080 && canvasY >= 65 && canvasY <= 95) {

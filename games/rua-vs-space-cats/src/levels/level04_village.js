@@ -22,6 +22,9 @@ class Level04_Village {
         this.dead = false;
         this.hasPassword = false;
         this.passwordAttempts = 0;
+        this.introComplete = false;
+        this.pendingSecondIntro = false;
+        this.firstCatCustomDialogueDone = false;
         this.generateLevel();
     }
 
@@ -107,19 +110,42 @@ class Level04_Village {
         this.dialogueSystem = dialogueSystem;
         this.dialogueSystem.position = 'top';  // Show dialogue at top for village level
         audioSystem.playMusic('village');
+
+        // Intro: lock movement until Rua finishes this thought
+        this.dialogueSystem.show([
+            'Ew, cats. I suppose I will have to try blending in by pretending to be one of them.'
+        ], 'rua', () => {
+            this.pendingSecondIntro = true;
+        });
     }
 
     update(input, deltaTime) {
         const moveSpeed = 3;
         const gravity = 0.6;
         const jumpPower = -15;
+        let dialogueActive = this.dialogueSystem && this.dialogueSystem.isDialogueActive();
+
+        // Show second intro box after first one closes
+        if (this.pendingSecondIntro && !dialogueActive) {
+            this.pendingSecondIntro = false;
+            this.dialogueSystem.show([
+                'I need to gather information from them, even though they are gross and inferior, and I am beautiful.'
+            ], 'rua', () => {
+                this.introComplete = true;
+            });
+            dialogueActive = true;
+        }
+
+        const canMove = this.introComplete && !dialogueActive;
 
         // Horizontal movement
-        if (input.left || input.a) this.rua.x -= moveSpeed;
-        if (input.right || input.d) this.rua.x += moveSpeed;
+        if (canMove) {
+            if (input.left || input.a) this.rua.x -= moveSpeed;
+            if (input.right || input.d) this.rua.x += moveSpeed;
+        }
 
         // Jumping
-        if ((input.space) && this.rua.grounded && !this.lastSpace) {
+        if (canMove && (input.space) && this.rua.grounded && !this.lastSpace) {
             this.rua.vy = jumpPower;
             this.rua.grounded = false;
             audioSystem.playSFX('jump');
@@ -150,8 +176,8 @@ class Level04_Village {
 
         // Check proximity to cats - show [ENTER] prompt
         this.cats.forEach(cat => {
-            cat.inRange = Math.abs(this.rua.x - cat.x) < 80;
-            
+            cat.inRange = canMove && Math.abs(this.rua.x - cat.x) < 80;
+
             // Handle ENTER interaction
             if (cat.inRange && input.enter && !this.lastEnter) {
                 this.interactWithCat(cat);
@@ -159,25 +185,18 @@ class Level04_Village {
         });
 
         // Check proximity to bird - show [ENTER] prompt
-        this.bird.inRange = Math.abs(this.rua.x - this.bird.x) < 80;
+        this.bird.inRange = canMove && Math.abs(this.rua.x - this.bird.x) < 80;
         if (this.bird.inRange && input.enter && !this.lastEnter) {
             this.interactWithBird();
         }
 
         // Check proximity to door - show [ENTER] prompt
-        this.door.inRange = Math.abs(this.rua.x - this.door.x) < 80;
+        this.door.inRange = canMove && Math.abs(this.rua.x - this.door.x) < 80;
         if (this.door.inRange && input.enter && !this.lastEnter) {
             if (this.door.locked) {
                 this.promptPassword();
             } else {
                 this.complete = true;
-            }
-        }
-
-        // Allow pressing ENTER to dismiss current dialogue
-        if (input.enter && !this.lastEnter) {
-            if (this.dialogueSystem && this.dialogueSystem.isDialogueActive()) {
-                this.dialogueSystem.skip();
             }
         }
 
@@ -189,8 +208,21 @@ class Level04_Village {
     }
 
     interactWithCat(cat) {
+        // Custom first interaction with the first village cat
+        if (cat.name === 'Old Tom' && !this.firstCatCustomDialogueDone) {
+            this.firstCatCustomDialogueDone = true;
+            cat.timesSpoken++;
+
+            this.dialogueSystem.show(['HELLO FELLOW CAAAATTT!! MEOWRP MEOWRP!'], 'rua', () => {
+                this.dialogueSystem.show(['UMMM ok?'], 'cat', () => {
+                    this.dialogueSystem.show(["I'm amazing at this"], 'rua');
+                });
+            });
+            return;
+        }
+
         cat.timesSpoken++;
-        
+
         // Regular cats: use different dialogues each time
         const index = Math.min(cat.timesSpoken - 1, cat.dialogue1.length - 1);
         this.dialogueSystem.show([cat.dialogue1[index]], 'cat', () => {
@@ -202,7 +234,7 @@ class Level04_Village {
 
     interactWithBird() {
         this.bird.timesSpoken++;
-        
+
         if (this.bird.timesSpoken === 1) {
             // First interaction: refuse
             this.dialogueSystem.show([this.bird.dialogue1[0]], 'cat', () => {
@@ -224,7 +256,7 @@ class Level04_Village {
     promptPassword() {
         const password = prompt('Enter the password:');
         this.passwordAttempts++;
-        
+
         if (password === 'MEOW123') {
             this.dialogueSystem.show(['🔓 Correct! You may enter.'], 'system', () => {
                 this.door.locked = false;
@@ -264,7 +296,7 @@ class Level04_Village {
             // House walls
             ctx.fillStyle = '#CD853F';
             ctx.fillRect(xPos, h - 280, 120, 150);
-            
+
             // Roof
             ctx.fillStyle = '#8B4513';
             ctx.beginPath();
@@ -273,11 +305,11 @@ class Level04_Village {
             ctx.lineTo(xPos + 120, h - 280);
             ctx.closePath();
             ctx.fill();
-            
+
             // Door
             ctx.fillStyle = '#654321';
             ctx.fillRect(xPos + 40, h - 180, 40, 80);
-            
+
             // Window
             ctx.fillStyle = '#FFD700';
             ctx.fillRect(xPos + 10, h - 240, 30, 30);
@@ -326,7 +358,7 @@ class Level04_Village {
         // Draw door
         ctx.fillStyle = this.door.locked ? '#8B0000' : '#228B22';
         ctx.fillRect(this.door.x, this.door.y, this.door.width, this.door.height);
-        
+
         // Door symbol
         ctx.font = '60px Arial';
         ctx.fillText(this.door.locked ? '🔒' : '🚪', this.door.x + 10, this.door.y + 85);

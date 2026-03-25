@@ -77,7 +77,7 @@ class Level03_Jungle {
                 color: ['#00ff88', '#88ff00', '#00ffff'][Math.floor(Math.random() * 3)]
             });
         }
-        
+
         // Background trees/plants
         this.backgroundPlants = [];
         for (let i = 0; i < 8; i++) {
@@ -189,25 +189,25 @@ class Level03_Jungle {
             if (enemy.x < enemy.patrolStart || enemy.x > enemy.patrolEnd) {
                 enemy.direction *= -1;
             }
-            
+
             // Check collision with Rua - VISUAL CONTACT ONLY (~30px)
             const dx = this.rua.x - enemy.x;
             const dy = this.rua.y - enemy.y;
             const distance = Math.sqrt(dx ** 2 + dy ** 2);
-            
+
             if (distance < 30 && !enemy.lastHitTime) {  // 30px = visual contact only
                 this.rua.health--;
                 enemy.lastHitTime = Date.now();
                 console.log(`💢 Rua hit by cat! Distance: ${distance.toFixed(1)}px Health: ${this.rua.health}/${this.rua.maxHealth}`);
                 audioSystem.playSFX('hit');
-                
+
                 if (this.rua.health <= 0) {
                     console.log('💀 Rua died in jungle!');
                     this.dead = true;  // Mark as dead, triggers restart
                     return;  // Exit update early
                 }
             }
-            
+
             // Reset hit cooldown
             if (enemy.lastHitTime && Date.now() - enemy.lastHitTime > 500) {
                 enemy.lastHitTime = null;
