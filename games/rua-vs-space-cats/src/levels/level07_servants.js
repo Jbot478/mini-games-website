@@ -15,55 +15,135 @@ class Level07_Servants {
         this.humans = this.createHumans();
         this.houses = this.createHouses();
         this.townHall = { x: canvas.width - 170, y: 120, width: 120, height: 140, inRange: false };
+        this.guard = {
+            x: canvas.width - 105,
+            y: 300,
+            emoji: '🧍‍♂️',
+            inRange: false,
+            blocksDoor: true
+        };
         this.dialogueSystem = null;
         this.complete = false;
         this.phase = 'intro';
         this.phaseTime = 0;
         this.peopleTalked = 0;
         this.objectiveDone = false;
+
+        this.quiz = {
+            active: false,
+            completed: false,
+            index: 0,
+            questions: [
+                {
+                    q: 'What did Jeff have for lunch?',
+                    type: 'text',
+                    isCorrect: (answer) => answer.includes('honey')
+                },
+                {
+                    q: 'What is the most common color of butterfly in this village?',
+                    type: 'text',
+                    isCorrect: (answer) => answer.includes('yellow')
+                },
+                {
+                    q: 'How is food usually delivered to this town?',
+                    type: 'text',
+                    isCorrect: (answer) => answer.includes('truck')
+                },
+                {
+                    q: 'What do we think of Brenda?',
+                    type: 'choice',
+                    choices: [
+                        'Brenda is amazing and wise.',
+                        'Brenda, you suuuuuuuuuuuuuck!!!!',
+                        'Brenda should get more petitions.',
+                        'We have no opinion about Brenda.'
+                    ],
+                    correctChoice: 1
+                }
+            ],
+            snideResponses: [
+                'Yeah Jeff is a sticky weirdo.',
+                'Yes, yellow. Stunning detective work by me, as expected.',
+                'Food truck. Tragic, predictable, and correct.',
+                'Exactly. Brenda still sucks.'
+            ]
+        };
+
+        this.ambientLines = [
+            'Everyone here has grabby energy.',
+            'These people would not survive one bee.',
+            'I miss space.',
+            'Too many hands. Not enough respect.'
+        ];
+        this.ambientTimer = 0;
+        this.nextAmbientAt = 5500;
+        this.ambientMessage = '';
+        this.ambientMessageTimer = 0;
     }
 
     createHumans() {
         return [
             {
-                x: 220,
+                x: 200,
                 y: 250,
-                emoji: '👩‍🌾',
-                name: 'Farmer Lina',
+                emoji: '🧍‍♀️',
+                name: 'Overfriendly Dog Person',
                 talked: false,
-                lines: ['New around here?', 'Town hall is where the serious weirdos gather.']
+                script: [
+                    { speaker: 'overfriendly', lines: ['Oh cute a doggy I wanna pet it.'] },
+                    { speaker: 'rua', lines: ['Do not touch me, you sticky peasant.'] },
+                    { speaker: 'overfriendly', lines: ['I’m not sticky, I just ate a jar of honey and I spilled some.'] },
+                    { speaker: 'rua', lines: ['That is… disgusting. I’m leaving now because I’m better than you.'] }
+                ]
             },
             {
-                x: 430,
+                x: 420,
                 y: 520,
-                emoji: '🧑‍🍳',
-                name: 'Cook Bram',
+                emoji: '🧍‍♀️',
+                name: 'Concerned Mom',
                 talked: false,
-                lines: ['I made soup. It is suspiciously sentient.', 'Try not to step in it.']
+                script: [
+                    { speaker: 'concerned_mom', lines: ['Wow I just saw a blue butterfly. I only ever usually see yellow ones around here.'] },
+                    { speaker: 'rua', lines: ['Usually I would tell people they need to get out more. But you should just go back inside.'] }
+                ]
             },
             {
-                x: 640,
+                x: 610,
                 y: 320,
-                emoji: '🧓',
-                name: 'Elder Marn',
+                emoji: '🧍‍♂️',
+                name: 'Oversharing Guy',
                 talked: false,
-                lines: ['A talking dog? This week keeps getting worse.', 'The town hall is up to the right.']
+                script: [
+                    { speaker: 'rua', lines: ['Hello servant, do you have any snacks, perhaps a roast chicken or foie gras?'] },
+                    { speaker: 'snack_human', lines: ['I don\'t have any food, little doggy. The food truck has been delayed since \'the other\' arrived. We can\'t find it. We need food.'] },
+                    { speaker: 'rua', lines: ['Oh my god, just say no you…'] },
+                    { speaker: 'rua', lines: ['Wait? The other?'] },
+                    { speaker: 'snack_human', lines: ['Yes, the other is a…'] },
+                    { speaker: 'rua', lines: ['Actually I don’t care, goodbye.'] }
+                ]
             },
             {
-                x: 840,
+                x: 780,
                 y: 560,
-                emoji: '🛠️',
-                name: 'Mechanic Jo',
+                emoji: '💃',
+                name: 'Petition Human',
                 talked: false,
-                lines: ['If it rattles, kick it.', 'If it still rattles, kick it harder.']
+                script: [
+                    { speaker: 'brenda', lines: ['Hello there. I\'m Brenda. Would you please sign this petition stating we should no longer be giving out free treats?'] },
+                    { speaker: 'rua', lines: ['Brenda, you suuuuuuuuuuuuuck!!!!'] }
+                ]
             },
             {
                 x: 980,
                 y: 360,
-                emoji: '🧍',
-                name: 'Nervous Citizen',
+                emoji: '🏋️‍♂️',
+                name: 'Gym Bro',
                 talked: false,
-                lines: ['Please do not bite me.', 'Actually, please do not bite anyone.']
+                script: [
+                    { speaker: 'rua', lines: ['Greetings human, have you any treats? Or perhaps you have seen my beepbopulator?'] },
+                    { speaker: 'gym_bro', lines: ['Sorry lil bro… I gave my spare protein to \'the other\'.'] },
+                    { speaker: 'rua', lines: ['I have no idea what that means but you have nice arms so, farewell to you whatever your name is.'] }
+                ]
             }
         ];
     }
@@ -93,71 +173,219 @@ class Level07_Servants {
         );
     }
 
-    update(input, deltaTime) {
-        this.phaseTime += deltaTime;
-        const dialogueWasActive = this.dialogueSystem && this.dialogueSystem.isDialogueActive();
+    playScript(script, index = 0, onDone = null) {
+        if (!script || index >= script.length) {
+            if (onDone) onDone();
+            return;
+        }
 
-        if (this.phase === 'gameplay') {
-            const moveSpeed = 2.8;
-            const enterJustPressed = input.enter && !this.lastEnter;
+        const step = script[index];
+        this.dialogueSystem.show(step.lines, step.speaker, () => {
+            this.playScript(script, index + 1, onDone);
+        });
+    }
 
-            if (!dialogueWasActive) {
-                if (input.left || input.a) {
-                    this.rua.x -= moveSpeed;
-                    this.rua.facing = 'left';
+    handleGuardInteraction() {
+        if (!this.objectiveDone) {
+            this.dialogueSystem.show(
+                ['You can’t go in there yet.', 'Talk to the villagers first.'],
+                'guard'
+            );
+            return;
+        }
+
+        if (this.quiz.completed) {
+            this.dialogueSystem.show(['You may enter.'], 'guard');
+            return;
+        }
+
+        this.quiz.active = true;
+    }
+
+    checkAnswer(rawAnswer) {
+        if (!rawAnswer) return false;
+        const answer = rawAnswer.trim().toLowerCase();
+        const question = this.quiz.questions[this.quiz.index];
+        return question.isCorrect(answer);
+    }
+
+    answerCurrentQuestion() {
+        if (!this.quiz.active || this.quiz.completed) return;
+
+        const current = this.quiz.questions[this.quiz.index];
+
+        if (current.type === 'choice') {
+            // Multiple choice question waits for click selection
+            return;
+        }
+
+        const userAnswer = prompt(current.q);
+        if (userAnswer === null) return;
+
+        if (this.checkAnswer(userAnswer)) {
+            this.quiz.active = false;
+            const snide = this.quiz.snideResponses[this.quiz.index] || 'Correct.';
+            this.dialogueSystem.show([snide], 'rua', () => {
+                this.quiz.index++;
+                if (this.quiz.index >= this.quiz.questions.length) {
+                    this.quiz.completed = true;
+                    this.guard.blocksDoor = false;
+                    this.dialogueSystem.show(['Fine. You remembered things.', 'Door is unlocked.'], 'guard');
+                } else {
+                    this.quiz.active = true;
                 }
-                if (input.right || input.d) {
-                    this.rua.x += moveSpeed;
-                    this.rua.facing = 'right';
-                }
-                if (input.up || input.w) this.rua.y -= moveSpeed;
-                if (input.down || input.s) this.rua.y += moveSpeed;
-            }
-
-            this.rua.x = Math.max(40, Math.min(this.canvas.width - 40, this.rua.x));
-            this.rua.y = Math.max(90, Math.min(this.canvas.height - 130, this.rua.y));
-
-            // Interact with townspeople
-            this.humans.forEach(human => {
-                human.inRange = Math.hypot(this.rua.x - human.x, this.rua.y - human.y) < 90;
             });
+        } else {
+            this.quiz.active = false; // close card on wrong answer
+            this.dialogueSystem.show(['Wrong.', 'Pay attention and try again.'], 'guard');
+        }
+    }
 
-            if (enterJustPressed && !dialogueWasActive) {
-                const human = this.humans.find(h => h.inRange);
-                if (human) {
-                    this.dialogueSystem.show(human.lines, 'human', () => {
-                        this.dialogueSystem.show(['Noted.', 'Now move aside, civilian.'], 'rua');
-                    });
-                    if (!human.talked) {
-                        human.talked = true;
-                        this.peopleTalked++;
-                    }
+    answerChoice(choiceIndex) {
+        if (!this.quiz.active || this.quiz.completed) return;
+        const current = this.quiz.questions[this.quiz.index];
+        if (current.type !== 'choice') return;
+
+        if (choiceIndex === current.correctChoice) {
+            this.quiz.active = false;
+            const snide = this.quiz.snideResponses[this.quiz.index] || 'Correct.';
+            this.dialogueSystem.show([snide], 'rua', () => {
+                this.quiz.index++;
+                if (this.quiz.index >= this.quiz.questions.length) {
+                    this.quiz.completed = true;
+                    this.guard.blocksDoor = false;
+                    this.dialogueSystem.show(['Fine. You remembered things.', 'Door is unlocked.'], 'guard');
+                } else {
+                    this.quiz.active = true;
                 }
+            });
+        } else {
+            this.quiz.active = false; // close card on wrong answer
+            this.dialogueSystem.show(['Wrong.', 'Try that again when you are less embarrassing.'], 'rua');
+        }
+    }
+
+    getChoiceRects() {
+        const cardW = 760;
+        const cardH = 300;
+        const x = (this.canvas.width - cardW) / 2;
+        const y = (this.canvas.height - cardH) / 2;
+        const width = cardW - 120;
+        const startX = x + 60;
+        const startY = y + 126;
+        const rowH = 34;
+
+        return [0, 1, 2, 3].map(i => ({
+            index: i,
+            x: startX,
+            y: startY + i * 40,
+            width,
+            height: rowH
+        }));
+    }
+
+    drawQuizCard() {
+        if (!this.quiz.active || this.quiz.completed) return;
+
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const currentQuestion = this.quiz.questions[this.quiz.index];
+        const q = currentQuestion.q;
+        const isChoice = currentQuestion.type === 'choice';
+
+        // Stylish popup card
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, w, h);
+
+        const cardW = 760;
+        const cardH = isChoice ? 300 : 250;
+        const x = (w - cardW) / 2;
+        const y = (h - cardH) / 2;
+
+        ctx.fillStyle = '#f9f5ff';
+        ctx.fillRect(x, y, cardW, cardH);
+        ctx.strokeStyle = '#5a3e8a';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(x, y, cardW, cardH);
+
+        ctx.fillStyle = '#5a3e8a';
+        ctx.fillRect(x, y, cardW, 46);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Town Hall Guard Question ${this.quiz.index + 1}/${this.quiz.questions.length}`, x + cardW / 2, y + 30);
+
+        ctx.fillStyle = '#2b2340';
+        ctx.font = 'bold 28px Arial';
+        this.wrapCenteredText(q, x + cardW / 2, y + 110, cardW - 80, 36);
+
+        if (isChoice) {
+            const rects = this.getChoiceRects();
+            ctx.font = '17px Arial';
+            ctx.textAlign = 'left';
+            rects.forEach((r) => {
+                const letter = String.fromCharCode(65 + r.index);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(r.x, r.y, r.width, r.height);
+                ctx.strokeStyle = '#7a5db1';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(r.x, r.y, r.width, r.height);
+                ctx.fillStyle = '#2b2340';
+                ctx.fillText(`${letter}) ${currentQuestion.choices[r.index]}`, r.x + 10, r.y + 23);
+            });
+            ctx.textAlign = 'center';
+            ctx.font = '18px Arial';
+            ctx.fillStyle = '#444';
+            ctx.fillText('Click an option', x + cardW / 2, y + cardH - 18);
+        } else {
+            ctx.font = '18px Arial';
+            ctx.fillStyle = '#444';
+            ctx.fillText('Press ENTER to type your answer', x + cardW / 2, y + cardH - 28);
+        }
+        ctx.textAlign = 'left';
+    }
+
+    wrapCenteredText(text, cx, startY, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let y = startY;
+
+        for (let i = 0; i < words.length; i++) {
+            const test = line + words[i] + ' ';
+            const w = this.ctx.measureText(test).width;
+            if (w > maxWidth && i > 0) {
+                this.ctx.fillText(line.trim(), cx, y);
+                line = words[i] + ' ';
+                y += lineHeight;
+            } else {
+                line = test;
             }
+        }
+        if (line.trim()) {
+            this.ctx.fillText(line.trim(), cx, y);
+        }
+    }
 
-            this.objectiveDone = this.peopleTalked >= 3;
-
-            // Town hall entrance after gathering info
-            this.townHall.inRange = this.objectiveDone
-                && Math.abs(this.rua.x - (this.townHall.x + this.townHall.width / 2)) < 85
-                && Math.abs(this.rua.y - (this.townHall.y + this.townHall.height + 15)) < 95;
-
-            if (this.townHall.inRange && enterJustPressed && !dialogueWasActive) {
-                this.dialogueSystem.show(
-                    ['Information acquired.', 'Time to interrogate whoever runs this circus.'],
-                    'rua',
-                    () => {
-                        this.complete = true;
-                    }
-                );
-            }
-
-            this.lastEnter = input.enter;
+    handleClick(canvasX, canvasY) {
+        if (!this.quiz.active || this.quiz.completed) {
+            return false;
         }
 
-        if (this.dialogueSystem) {
-            this.dialogueSystem.update(input);
+        const current = this.quiz.questions[this.quiz.index];
+        if (current.type !== 'choice') {
+            return true; // absorb clicks while quiz card is active
         }
+
+        const rects = this.getChoiceRects();
+        for (const r of rects) {
+            if (canvasX >= r.x && canvasX <= r.x + r.width && canvasY >= r.y && canvasY <= r.y + r.height) {
+                this.answerChoice(r.index);
+                return true;
+            }
+        }
+
+        return true;
     }
 
     draw() {
@@ -208,11 +436,24 @@ class Level07_Servants {
         ctx.fillRect(this.townHall.x, this.townHall.y, this.townHall.width, this.townHall.height);
         ctx.fillStyle = '#7d5632';
         ctx.fillRect(this.townHall.x + 40, this.townHall.y + 85, 40, 55);
-        ctx.fillStyle = '#2f4f7f';
+        ctx.fillStyle = this.quiz.completed ? '#1f6f3e' : '#2f4f7f';
         ctx.fillRect(this.townHall.x + 8, this.townHall.y - 24, this.townHall.width - 16, 20);
         ctx.fillStyle = 'white';
         ctx.font = 'bold 12px Arial';
-        ctx.fillText('TOWN HALL', this.townHall.x + 14, this.townHall.y - 10);
+        ctx.fillText(this.quiz.completed ? 'OFFICE' : 'TOWN HALL', this.townHall.x + 18, this.townHall.y - 10);
+
+        // Guard at door (6th human)
+        ctx.font = '48px Arial';
+        ctx.fillText(this.guard.emoji, this.guard.x - 24, this.guard.y);
+
+        if (this.guard.inRange && this.phase === 'gameplay' && !this.dialogueSystem.isDialogueActive()) {
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.font = '14px Arial';
+            ctx.strokeText('[ENTER] Talk', this.guard.x - 40, this.guard.y - 42);
+            ctx.fillText('[ENTER] Talk', this.guard.x - 40, this.guard.y - 42);
+        }
 
         // Humans
         this.humans.forEach(human => {
@@ -240,7 +481,7 @@ class Level07_Servants {
 
         // Player
         ctx.font = '50px Arial';
-        if (this.rua.facing === 'left') {
+        if (this.rua.facing === 'right') {
             ctx.save();
             ctx.scale(-1, 1);
             ctx.fillText(this.rua.emoji, -(this.rua.x - 25), this.rua.y);
@@ -254,16 +495,119 @@ class Level07_Servants {
         ctx.fillRect(14, 10, 340, 58);
         ctx.fillStyle = 'white';
         ctx.font = 'bold 14px Arial';
-        ctx.fillText(`Talk to townspeople: ${this.peopleTalked}/3`, 24, 32);
+        ctx.fillText(`Talk to villagers: ${this.peopleTalked}/5`, 24, 32);
         ctx.font = '13px Arial';
-        ctx.fillText(this.objectiveDone ? 'Objective: Enter Town Hall' : 'Objective: Gather information', 24, 52);
+        if (!this.objectiveDone) {
+            ctx.fillText('Objective: Gather information', 24, 52);
+        } else if (!this.quiz.completed) {
+            ctx.fillText(`Objective: Answer guard questions (${this.quiz.index}/${this.quiz.questions.length})`, 24, 52);
+        } else {
+            ctx.fillText('Objective: Enter the office', 24, 52);
+        }
+
+        if (this.ambientMessage) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.58)';
+            ctx.fillRect(14, 74, 440, 32);
+            ctx.fillStyle = '#ffe082';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(this.ambientMessage, 24, 95);
+        }
 
         if (this.dialogueSystem) {
             this.dialogueSystem.draw();
         }
+
+        this.drawQuizCard();
     }
 
     isComplete() {
         return this.complete;
+    }
+
+    update(input, deltaTime) {
+        this.phaseTime += deltaTime;
+        const dialogueWasActive = this.dialogueSystem && this.dialogueSystem.isDialogueActive();
+
+        if (this.phase === 'gameplay') {
+            const moveSpeed = 2.8;
+            const enterJustPressed = input.enter && !this.lastEnter;
+
+            if (!dialogueWasActive && !this.quiz.active) {
+                if (input.left || input.a) {
+                    this.rua.x -= moveSpeed;
+                    this.rua.facing = 'left';
+                }
+                if (input.right || input.d) {
+                    this.rua.x += moveSpeed;
+                    this.rua.facing = 'right';
+                }
+                if (input.up || input.w) this.rua.y -= moveSpeed;
+                if (input.down || input.s) this.rua.y += moveSpeed;
+            }
+
+            this.rua.x = Math.max(40, Math.min(this.canvas.width - 40, this.rua.x));
+            this.rua.y = Math.max(90, Math.min(this.canvas.height - 130, this.rua.y));
+
+            this.humans.forEach(human => {
+                human.inRange = Math.hypot(this.rua.x - human.x, this.rua.y - human.y) < 90;
+            });
+            this.guard.inRange = Math.hypot(this.rua.x - this.guard.x, this.rua.y - this.guard.y) < 95;
+
+            if (this.quiz.active && enterJustPressed && !dialogueWasActive) {
+                this.answerCurrentQuestion();
+            } else if (enterJustPressed && !dialogueWasActive) {
+                const human = this.humans.find(h => h.inRange);
+                if (human) {
+                    this.playScript(human.script, 0);
+                    if (!human.talked) {
+                        human.talked = true;
+                        this.peopleTalked++;
+                    }
+                } else if (this.guard.inRange) {
+                    this.handleGuardInteraction();
+                }
+            }
+
+            this.objectiveDone = this.peopleTalked >= 5;
+
+            this.townHall.inRange = this.quiz.completed
+                && Math.abs(this.rua.x - (this.townHall.x + this.townHall.width / 2)) < 85
+                && Math.abs(this.rua.y - (this.townHall.y + this.townHall.height + 15)) < 95;
+
+            if (this.townHall.inRange && enterJustPressed && !dialogueWasActive) {
+                this.dialogueSystem.show(
+                    ['Information acquired.', 'Time to interrogate whoever runs this circus.'],
+                    'rua',
+                    () => {
+                        this.complete = true;
+                    }
+                );
+            }
+
+            // Ambient random non-blocking Rua comments
+            if (!dialogueWasActive && !this.quiz.active) {
+                this.ambientTimer += deltaTime;
+                if (this.ambientTimer >= this.nextAmbientAt) {
+                    const index = Math.floor(Math.random() * this.ambientLines.length);
+                    this.ambientMessage = this.ambientLines[index];
+                    this.ambientMessageTimer = 2200;
+                    this.ambientTimer = 0;
+                    this.nextAmbientAt = 4500 + Math.random() * 3500;
+                }
+            }
+
+            if (this.ambientMessageTimer > 0) {
+                this.ambientMessageTimer -= deltaTime;
+                if (this.ambientMessageTimer <= 0) {
+                    this.ambientMessage = '';
+                }
+            }
+
+            this.lastEnter = input.enter;
+        }
+
+        if (this.dialogueSystem) {
+            this.dialogueSystem.update(input);
+        }
     }
 }

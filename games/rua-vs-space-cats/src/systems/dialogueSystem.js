@@ -39,7 +39,13 @@ class DialogueSystem {
             'sprinkles': '🐶',
             'fish_lady': '🧜‍♀️',
             'bee': '🐝',
-            'human': '🧍'
+            'human': '🧍',
+            'overfriendly': '🧍‍♀️',
+            'concerned_mom': '🧍‍♀️',
+            'snack_human': '🧍‍♂️',
+            'brenda': '💃',
+            'gym_bro': '🏋️‍♂️',
+            'guard': '🧍‍♂️'
         };
         return emojiMap[character.toLowerCase()] || '💬';
     }
@@ -67,9 +73,10 @@ class DialogueSystem {
             if (this.lineIndex >= this.currentDialogue.lines.length) {
                 console.log('All dialogue lines shown! Setting isActive to FALSE');
                 this.isActive = false;
-                if (this.callback) {
-                    this.callback();
-                    this.callback = null;
+                const onDone = this.callback;
+                this.callback = null;
+                if (onDone) {
+                    onDone();
                 }
             } else {
                 console.log(`Moving to next line: "${this.currentDialogue.lines[this.lineIndex]}"`);
@@ -89,8 +96,8 @@ class DialogueSystem {
         const line = this.currentDialogue.lines[this.lineIndex];
         const emoji = this.currentDialogue.emoji;
 
-        const bubbleWidth = Math.min(600, this.canvas.width * 0.8);
-        const bubbleHeight = 120;
+        const bubbleWidth = Math.min(760, this.canvas.width * 0.86);
+        const bubbleHeight = 170;
         const x = (this.canvas.width - bubbleWidth) / 2;
         const y = this.position === 'top' ? 40 : this.canvas.height - bubbleHeight - 40;
 
@@ -105,11 +112,11 @@ class DialogueSystem {
         this.ctx.strokeRect(x, y, bubbleWidth, bubbleHeight);
 
         this.ctx.font = '48px Arial';
-        this.ctx.fillText(emoji, x + 20, y + 65);
+        this.ctx.fillText(emoji, x + 20, y + 72);
 
         this.ctx.fillStyle = '#333';
-        this.ctx.font = '24px "Comic Sans MS", cursive';
-        this.wrapText(line, x + 90, y + 40, bubbleWidth - 110, 30);
+        this.ctx.font = '22px "Comic Sans MS", cursive';
+        this.wrapText(line, x + 90, y + 42, bubbleWidth - 120, 26);
 
         this.ctx.fillStyle = '#666';
         this.ctx.font = '16px Arial';
@@ -117,7 +124,7 @@ class DialogueSystem {
             ? '▼ Press ENTER'
             : '▼ Press ENTER to continue';
         const promptWidth = this.ctx.measureText(promptText).width;
-        this.ctx.fillText(promptText, x + bubbleWidth - promptWidth - 20, y + bubbleHeight - 15);
+        this.ctx.fillText(promptText, x + bubbleWidth - promptWidth - 20, y + bubbleHeight - 14);
     }
 
     wrapText(text, x, y, maxWidth, lineHeight) {
@@ -146,9 +153,10 @@ class DialogueSystem {
 
     skip() {
         this.isActive = false;
-        if (this.callback) {
-            this.callback();
-            this.callback = null;
+        const onDone = this.callback;
+        this.callback = null;
+        if (onDone) {
+            onDone();
         }
     }
 }

@@ -202,46 +202,88 @@ class AudioSystem {
     }
 
     playVillageMusic() {
-        // Lo-fi, sleepy beat
+        // FF9 Black Mage Village inspired: whimsical, magical, melancholic charm
         const ctx = this.audioContext;
         const now = ctx.currentTime;
 
-        const chords = [
-            [261.63, 329.63, 392.00], // C major
-            [293.66, 369.99, 440.00], // D minor
-            [329.63, 392.00, 493.88], // E minor
-            [349.23, 440.00, 523.25]  // F major
+        const beat = 0.35; // ~86 BPM, slower and more reflective
+        const barDuration = beat * 8; // 2.8 seconds per bar
+
+        // Mix of minor and major for the bittersweet, magical quality
+        // Based around C minor with some major inflections
+        const progression = [
+            { bass: 130.81, chord: [130.81, 155.56, 196.0] },      // Cm
+            { bass: 146.83, chord: [146.83, 174.61, 220.0] },      // Dm
+            { bass: 164.81, chord: [164.81, 196.0, 246.94] },      // Eb (major)
+            { bass: 130.81, chord: [130.81, 155.56, 196.0] }       // Cm
         ];
 
-        let time = now;
-        let chordIndex = 0;
+        const melodies = [
+            // Gentle, wandering melodic phrases
+            [261.63, 293.66, 329.63, 261.63, 293.66, 329.63, 261.63, 246.94],
+            [329.63, 349.23, 392.0, 349.23, 329.63, 293.66, 261.63, 293.66],
+            [261.63, 293.66, 349.23, 329.63, 293.66, 261.63, 246.94, 261.63],
+            [349.23, 329.63, 293.66, 261.63, 293.66, 329.63, 349.23, 329.63]
+        ];
 
-        const playChord = () => {
-            const chord = chords[chordIndex % chords.length];
+        const playNote = (freq, start, dur, type = 'sine', vol = 0.13) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
 
-            chord.forEach((freq, i) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
 
-                osc.frequency.value = freq;
-                osc.type = 'sine';
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
-                gain.gain.setValueAtTime(0, time);
-                gain.gain.linearRampToValueAtTime(this.musicVolume * 0.15, time + 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.01, time + 3);
-
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(time);
-                osc.stop(time + 3);
-            });
-
-            chordIndex++;
-            time += 3;
-            this.musicTimeout = setTimeout(playChord, 3000);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + dur);
         };
 
-        playChord();
+        let barTime = now;
+        let barIndex = 0;
+
+        const scheduleBar = () => {
+            const section = progression[barIndex % progression.length];
+            const melody = melodies[barIndex % melodies.length];
+
+            // Ethereal harp-like plucked chords (sparse, magical)
+            for (let i = 0; i < 2; i++) {
+                const t = barTime + i * 4 * beat;
+                section.chord.forEach((f, idx) => {
+                    playNote(f, t + idx * 0.012, 1.4, 'sine', 0.06);
+                });
+            }
+
+            // Gentle, walking bass (slower, less prominent)
+            for (let i = 0; i < 4; i++) {
+                const t = barTime + i * 2 * beat;
+                const freq = i % 2 === 0 ? section.bass : section.bass * 1.25;
+                playNote(freq, t, 0.5, 'sine', 0.05);
+            }
+
+            // Wistful, wandering melody (main voice)
+            for (let i = 0; i < 8; i++) {
+                const t = barTime + i * beat;
+                const n = melody[i];
+                const dur = i === 7 ? beat * 1.5 : beat * 0.8;
+                playNote(n, t, dur, 'sine', 0.10);
+
+                // Subtle shimmer accents on melody (glissando-like feel)
+                if (i % 2 === 0) {
+                    playNote(n * 1.5, t + 0.05, 0.2, 'triangle', 0.025);
+                }
+            }
+
+            barIndex++;
+            barTime += barDuration;
+            this.musicTimeout = setTimeout(scheduleBar, barDuration * 1000);
+        };
+
+        scheduleBar();
     }
 
     playStonerMusic() {
@@ -319,33 +361,88 @@ class AudioSystem {
     }
 
     playServantsMusic() {
-        // Soft but unsettling
+        // FF9 Black Mage Village inspired: whimsical, magical, melancholic charm
         const ctx = this.audioContext;
         const now = ctx.currentTime;
 
-        let time = now;
+        const beat = 0.35; // ~86 BPM, slower and more reflective
+        const barDuration = beat * 8; // 2.8 seconds per bar
 
-        const playEerieNote = () => {
+        // Mix of minor and major for the bittersweet, magical quality
+        // Based around C minor with some major inflections
+        const progression = [
+            { bass: 130.81, chord: [130.81, 155.56, 196.0] },      // Cm
+            { bass: 146.83, chord: [146.83, 174.61, 220.0] },      // Dm
+            { bass: 164.81, chord: [164.81, 196.0, 246.94] },      // Eb (major)
+            { bass: 130.81, chord: [130.81, 155.56, 196.0] }       // Cm
+        ];
+
+        const melodies = [
+            // Gentle, wandering melodic phrases
+            [261.63, 293.66, 329.63, 261.63, 293.66, 329.63, 261.63, 246.94],
+            [329.63, 349.23, 392.0, 349.23, 329.63, 293.66, 261.63, 293.66],
+            [261.63, 293.66, 349.23, 329.63, 293.66, 261.63, 246.94, 261.63],
+            [349.23, 329.63, 293.66, 261.63, 293.66, 329.63, 349.23, 329.63]
+        ];
+
+        const playNote = (freq, start, dur, type = 'sine', vol = 0.13) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
 
-            osc.frequency.value = 220 + Math.random() * 50;
-            osc.type = 'sine';
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
 
-            gain.gain.setValueAtTime(0, time);
-            gain.gain.linearRampToValueAtTime(this.musicVolume * 0.15, time + 1);
-            gain.gain.linearRampToValueAtTime(0, time + 5);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start(time);
-            osc.stop(time + 5);
-
-            time += 5;
-            this.musicTimeout = setTimeout(playEerieNote, 5000);
+            osc.start(start);
+            osc.stop(start + dur);
         };
 
-        playEerieNote();
+        let barTime = now;
+        let barIndex = 0;
+
+        const scheduleBar = () => {
+            const section = progression[barIndex % progression.length];
+            const melody = melodies[barIndex % melodies.length];
+
+            // Ethereal harp-like plucked chords (sparse, magical)
+            for (let i = 0; i < 2; i++) {
+                const t = barTime + i * 4 * beat;
+                section.chord.forEach((f, idx) => {
+                    playNote(f, t + idx * 0.012, 1.4, 'sine', 0.06);
+                });
+            }
+
+            // Gentle, walking bass (slower, less prominent)
+            for (let i = 0; i < 4; i++) {
+                const t = barTime + i * 2 * beat;
+                const freq = i % 2 === 0 ? section.bass : section.bass * 1.25;
+                playNote(freq, t, 0.5, 'sine', 0.05);
+            }
+
+            // Wistful, wandering melody (main voice)
+            for (let i = 0; i < 8; i++) {
+                const t = barTime + i * beat;
+                const n = melody[i];
+                const dur = i === 7 ? beat * 1.5 : beat * 0.8;
+                playNote(n, t, dur, 'sine', 0.10);
+
+                // Subtle shimmer accents on melody (glissando-like feel)
+                if (i % 2 === 0) {
+                    playNote(n * 1.5, t + 0.05, 0.2, 'triangle', 0.025);
+                }
+            }
+
+            barIndex++;
+            barTime += barDuration;
+            this.musicTimeout = setTimeout(scheduleBar, barDuration * 1000);
+        };
+
+        scheduleBar();
     }
 
     playOfficeMusic() {
