@@ -24,6 +24,7 @@ class RuaVsSpaceCats {
 
         // Navigation
         this.showNavigation = true;
+        this.isPaused = false;
 
         this.initLevels();
         this.loadGame();
@@ -106,6 +107,8 @@ class RuaVsSpaceCats {
     update() {
         if (this.gameState !== 'playing') return;
 
+        if (this.isPaused) return;
+
         const input = inputSystem.getMovement();
 
         if (this.transition.isActive()) {
@@ -154,9 +157,44 @@ class RuaVsSpaceCats {
             this.drawNavigation();
         }
 
+        this.drawPauseButton();
+
+        if (this.isPaused) {
+            this.drawPauseOverlay();
+        }
+
         if (window.DEBUG_MODE) {
             this.drawDebugInfo();
         }
+    }
+
+    drawPauseButton() {
+        const ctx = this.ctx;
+        ctx.fillStyle = this.isPaused ? '#ff9800' : '#444';
+        ctx.fillRect(20, 10, 100, 30);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.isPaused ? 'RESUME (P)' : 'PAUSE (P)', 70, 30);
+        ctx.textAlign = 'left';
+    }
+
+    drawPauseOverlay() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 56px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', w / 2, h / 2 - 20);
+
+        ctx.font = '22px Arial';
+        ctx.fillText('Press P to resume', w / 2, h / 2 + 28);
+        ctx.textAlign = 'left';
     }
 
     drawNavigation() {
@@ -210,12 +248,19 @@ class RuaVsSpaceCats {
     completeLevel() {
         console.log(`✅ Level ${this.currentLevelIndex} complete!`);
 
-        saveSystem.save(this.currentLevelIndex + 1);
+        const overrideLevel = (this.currentLevel && typeof this.currentLevel.getNextLevelOverride === 'function')
+            ? this.currentLevel.getNextLevelOverride()
+            : null;
+        const nextLevelIndex = (overrideLevel !== null && overrideLevel !== undefined)
+            ? overrideLevel
+            : this.currentLevelIndex + 1;
+
+        saveSystem.save(nextLevelIndex);
 
         const transitionType = this.getTransitionType(this.currentLevelIndex);
 
         this.transition.start(transitionType, () => {
-            this.startLevel(this.currentLevelIndex + 1);
+            this.startLevel(nextLevelIndex);
         }, { duration: 1500 });
 
         audioSystem.stopMusic(true);
@@ -291,6 +336,11 @@ class RuaVsSpaceCats {
         }
     }
 
+    togglePause() {
+        if (this.gameState !== 'playing') return;
+        this.isPaused = !this.isPaused;
+    }
+
     drawDebugInfo() {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         this.ctx.fillRect(10, 10, 250, 100);
@@ -333,6 +383,16 @@ window.addEventListener('DOMContentLoaded', () => {
         const canvasX = (x / rect.width) * 1200;
         const canvasY = (y / rect.height) * 800;
 
+        // Pause button: 20-120, 10-40
+        if (canvasX >= 20 && canvasX <= 120 && canvasY >= 10 && canvasY <= 40) {
+            window.game.togglePause();
+            return;
+        }
+
+        if (window.game.isPaused) {
+            return;
+        }
+
         // Let the active level handle click interactions first (e.g., puzzle cards)
         if (window.game.currentLevel && typeof window.game.currentLevel.handleClick === 'function') {
             const handled = window.game.currentLevel.handleClick(canvasX, canvasY);
@@ -360,6 +420,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Debug controls
     window.addEventListener('keydown', (e) => {
+        if (e.key === 'p' || e.key === 'P') {
+            window.game.togglePause();
+            return;
+        }
+
         if (e.key === 'D' && e.shiftKey) {
             window.game.toggleDebug();
         }

@@ -43,7 +43,7 @@ class Level05_BeeHouse {
                 ruaLine: 'Of course it is. Everything judges me, but I remain fabulous.'
             },
             {
-                x: 950,
+                x: 860,
                 y: canvas.height - 150,
                 emoji: '😼',
                 spoken: false,
@@ -136,23 +136,27 @@ class Level05_BeeHouse {
             if (this.entryDialogueDelay <= 0 && this.dialogueSystem && !dialogueActive) {
                 this.entryDialogueStep = 2;
                 this.dialogueSystem.show(
-                    'What is this? Catnip smoke everywhere? Absolutely disgusting, but I will save you all anyway.',
+                    'Ew it smells like regret and cat piss.',
                     'rua',
                     () => {
-                        this.entryDialogueStep = 2;
+                        this.entryDialogueStep = 3;
                     }
                 );
             }
         }
 
         if (this.phase === 'entry' && this.dialogueSystem && !dialogueActive) {
-            if (this.entryDialogueStep === 2) {
-                this.entryDialogueStep = 3;
-                this.dialogueSystem.show('Yeah… that’s… that’s a bee, I guess.', 'stoner_cat', () => {
-                    this.entryDialogueStep = 4;
+            if (this.entryDialogueStep === 3) {
+                this.entryDialogueStep = 4;
+                this.dialogueSystem.show('Oh my god! is that a half dead bee?? Step aside useless kitties! I\'ll save us!', 'rua', () => {
+                    this.entryDialogueStep = 5;
                 });
-            } else if (this.entryDialogueStep === 4) {
-                this.entryDialogueStep = 5;
+            } else if (this.entryDialogueStep === 5) {
+                this.entryDialogueStep = 6;
+                this.dialogueSystem.show('Huh? Wah? it\'s just a bee.....', 'cat', () => {
+                    this.entryDialogueStep = 7;
+                });
+            } else if (this.entryDialogueStep === 7) {
                 this.phase = 'explore';
             }
         }
@@ -160,10 +164,6 @@ class Level05_BeeHouse {
         if (this.phase === 'inspect_dialogue' && this.dialogueSystem && !dialogueActive) {
             if (this.inspectDialogueStep === 1) {
                 this.inspectDialogueStep = 2;
-                this.dialogueSystem.show('Yeah… that’s… that’s a bee, I guess.', 'stoner_cat', () => {
-                    this.inspectDialogueStep = 3;
-                });
-            } else if (this.inspectDialogueStep === 3) {
                 this.startBeePuzzle();
             }
         }
