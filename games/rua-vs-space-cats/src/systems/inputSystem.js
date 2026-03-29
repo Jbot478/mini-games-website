@@ -8,6 +8,8 @@ class InputSystem {
             down: false,
             space: false,
             enter: false,
+            z: false,
+            r: false,
             w: false,
             a: false,
             s: false,
@@ -60,6 +62,12 @@ class InputSystem {
                 this.keys.enter = true;
                 e.preventDefault();
                 break;
+            case 'z':
+                this.keys.z = true;
+                break;
+            case 'r':
+                this.keys.r = true;
+                break;
         }
 
         this.keysPressed.add(key);
@@ -95,6 +103,12 @@ class InputSystem {
             case 'enter':
                 this.keys.enter = false;
                 break;
+            case 'z':
+                this.keys.z = false;
+                break;
+            case 'r':
+                this.keys.r = false;
+                break;
         }
 
         this.keysPressed.delete(key);
@@ -126,7 +140,9 @@ class InputSystem {
             up: this.keys.up || this.keys.w,
             down: this.keys.down || this.keys.s,
             space: this.keys.space,
-            enter: this.keys.enter
+            enter: this.keys.enter,
+            z: this.keys.z,
+            r: this.keys.r
         };
     }
 }
