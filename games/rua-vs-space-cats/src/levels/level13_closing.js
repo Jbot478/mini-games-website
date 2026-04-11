@@ -39,7 +39,7 @@ class Level13_Closing {
 
         this.servants = [
             { x: canvas.width + 120, y: canvas.height - 150, targetX: 500, emoji: '🧍🏻‍♂️' },
-            { x: canvas.width + 260, y: canvas.height - 150, targetX: 650, emoji: '🧍🏻‍♂️' }
+            { x: canvas.width + 260, y: canvas.height - 150, targetX: 650, emoji: '🧍🏻' }
         ];
 
         this.dialogueSequence = [
@@ -459,7 +459,7 @@ class Level13_Closing {
     }
 
     createFloaters() {
-        const emojis = ['🐕', '🐶', '😺', '😸', '🐱', '🐦', '🧍🏻‍♂️', '🧜‍♀️', '🐝'];
+        const emojis = ['🐕', '🐶', '😺', '😸', '🐱', '🐦', '🧍🏻‍♂️', '🧍🏻', '🧜‍♀️', '🐝'];
         const out = [];
         for (let i = 0; i < 24; i++) {
             out.push({
