@@ -32,6 +32,7 @@ class Level06_Mountain {
         this.nextLevelOverride = null;
         this.dead = false;
         this.autoDialogueTimer = 0;
+        this.autoDialogueStep = 0;
         this.dialogueSystem = null;
         this.complete = false;
     }
@@ -89,6 +90,8 @@ class Level06_Mountain {
         this.dialogueSystem = dialogueSystem;
         this.dialogueSystem.position = 'top';
         this.dead = false;
+        this.autoDialogueTimer = 0;
+        this.autoDialogueStep = 0;
         audioSystem.playMusic('mountain');
     }
 
@@ -97,12 +100,14 @@ class Level06_Mountain {
 
         this.autoDialogueTimer += deltaTime;
 
-        // Auto-dialogue
-        if (this.autoDialogueTimer > 5000 && this.autoDialogueTimer < 5100) {
-            this.dialogueSystem.show('This is too high.', 'rua', () => {});
+        // Auto-dialogue (auto advances/disappears without ENTER)
+        if (this.autoDialogueStep === 0 && this.autoDialogueTimer > 5000) {
+            this.autoDialogueStep = 1;
+            this.showAutoCommentary('This is too high.', 2400);
         }
-        if (this.autoDialogueTimer > 10000 && this.autoDialogueTimer < 10100) {
-            this.dialogueSystem.show('That Shih Tzu would have quit already.', 'rua', () => {});
+        if (this.autoDialogueStep === 1 && this.autoDialogueTimer > 10000) {
+            this.autoDialogueStep = 2;
+            this.showAutoCommentary('That Shih Tzu would have quit already.', 2400);
         }
 
         const gravity = 0.5;
@@ -320,7 +325,7 @@ class Level06_Mountain {
 
         // Player
         ctx.font = '50px Arial';
-        if (this.rua.facing === 'left') {
+        if (this.rua.facing === 'right') {
             ctx.save();
             ctx.scale(-1, 1);
             ctx.fillText(this.rua.emoji, -(this.rua.x - 25), this.rua.y);
@@ -369,5 +374,21 @@ class Level06_Mountain {
 
     isDead() {
         return this.dead;
+    }
+
+    showAutoCommentary(text, durationMs = 2200) {
+        if (!this.dialogueSystem) return;
+
+        this.dialogueSystem.show(text, 'rua', () => {});
+        const currentLine = this.dialogueSystem.currentDialogue && this.dialogueSystem.currentDialogue.lines
+            ? this.dialogueSystem.currentDialogue.lines[0]
+            : null;
+
+        setTimeout(() => {
+            if (!this.dialogueSystem || !this.dialogueSystem.isDialogueActive()) return;
+            if (!this.dialogueSystem.currentDialogue) return;
+            if (this.dialogueSystem.currentDialogue.lines[0] !== currentLine) return;
+            this.dialogueSystem.skip();
+        }, durationMs);
     }
 }

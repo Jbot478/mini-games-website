@@ -49,12 +49,20 @@ class RuaVsSpaceCats {
             { class: Level09_Flight, name: 'Thrown Like Trash' },
             { class: Level10_Ocean, name: 'The Ocean Trial' },
             { class: Level11_Return, name: 'Back To Settle It' },
-            { class: Level12_FinalBoss, name: 'Space, But Personal' }
+            { class: Level12_FinalBoss, name: 'Space, But Personal' },
+            { class: Level13_Closing, name: 'Home Again' }
         ];
     }
 
     loadGame() {
-        const savedLevel = saveSystem.getCurrentLevel();
+        let savedLevel = saveSystem.getCurrentLevel();
+
+        // If player has already finished the game, start fresh from level 0
+        if (savedLevel < 0 || savedLevel >= this.levels.length) {
+            savedLevel = 0;
+            saveSystem.save(0);
+        }
+
         this.currentLevelIndex = savedLevel;
 
         console.log(`🎮 Loading from Level ${this.currentLevelIndex}`);
@@ -80,9 +88,10 @@ class RuaVsSpaceCats {
         this.gameState = 'playing';
 
         if (levelIndex > 0) {
+            const showLevelTitle = levelIndex !== 9;
             this.transition.start('fade_black', null, {
                 duration: 2000,
-                title: this.levels[levelIndex].name.toUpperCase()
+                title: showLevelTitle ? this.levels[levelIndex].name.toUpperCase() : ''
             });
         }
 
@@ -251,11 +260,25 @@ class RuaVsSpaceCats {
         const overrideLevel = (this.currentLevel && typeof this.currentLevel.getNextLevelOverride === 'function')
             ? this.currentLevel.getNextLevelOverride()
             : null;
-        const nextLevelIndex = (overrideLevel !== null && overrideLevel !== undefined)
+        let nextLevelIndex = (overrideLevel !== null && overrideLevel !== undefined)
             ? overrideLevel
             : this.currentLevelIndex + 1;
 
+        const finishedGame = nextLevelIndex >= this.levels.length;
+        if (finishedGame) {
+            nextLevelIndex = 0;
+        }
+
         saveSystem.save(nextLevelIndex);
+
+        if (finishedGame) {
+            audioSystem.stopMusic(true);
+            this.transition.isTransitioning = false;
+            this.transition.titleText = null;
+            this.transition.callback = null;
+            this.startLevel(0);
+            return;
+        }
 
         const transitionType = this.getTransitionType(this.currentLevelIndex);
 
@@ -279,6 +302,12 @@ class RuaVsSpaceCats {
     gameComplete() {
         console.log('🎉 GAME COMPLETE!');
         this.gameState = 'complete';
+        this.transition.isTransitioning = false;
+        this.transition.titleText = null;
+        this.transition.callback = null;
+
+        // After winning, next launch should begin at level 0
+        saveSystem.save(0);
 
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -292,18 +321,19 @@ class RuaVsSpaceCats {
         this.ctx.fillText('Rua has defeated Sprinkles!', this.canvas.width / 2, this.canvas.height / 2);
 
         this.ctx.font = '24px Arial';
-        this.ctx.fillText('Press ENTER to return to main menu', this.canvas.width / 2, this.canvas.height / 2 + 100);
+        this.ctx.fillText('Press ENTER to play again from the start', this.canvas.width / 2, this.canvas.height / 2 + 100);
 
         this.ctx.textAlign = 'left';
 
-        const checkReturn = () => {
-            if (inputSystem.keys.enter) {
-                this.returnToMenu();
-            } else {
-                requestAnimationFrame(checkReturn);
-            }
-        };
-        checkReturn();
+        setTimeout(() => {
+            this.restartFromBeginning();
+        }, 1500);
+    }
+
+    restartFromBeginning() {
+        console.log('🔄 Restarting from Level 0');
+        audioSystem.stopMusic();
+        this.startLevel(0);
     }
 
     returnToMenu() {

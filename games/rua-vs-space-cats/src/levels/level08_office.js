@@ -140,7 +140,7 @@ class Level08_Office {
 
     init(dialogueSystem) {
         this.dialogueSystem = dialogueSystem;
-        this.dialogueSystem.position = 'bottom';
+        this.dialogueSystem.position = 'top';
         audioSystem.playMusic('office');
     }
 
@@ -373,6 +373,7 @@ class Level08_Office {
                     'rua',
                     () => {
                         this.phase = 'gameplay';
+                        audioSystem.playMusic('liminal');
                     }
                 );
             }
@@ -446,7 +447,7 @@ class Level08_Office {
 
             if (this.rua.x > targetRuaX) {
                 this.rua.x -= 2.2;
-                this.rua.facing = 'left';
+                this.rua.facing = 'right';
             }
 
             if (this.rua.y > targetRuaY) this.rua.y -= 2.0;
@@ -457,10 +458,16 @@ class Level08_Office {
 
             if (this.rua.x <= targetRuaX && Math.abs(this.rua.y - targetRuaY) < 3 && Math.abs(this.sprinkles.y - targetSprinklesY) < 3) {
                 this.rua.y = targetRuaY;
+                this.rua.facing = 'right';
                 this.sprinkles.y = targetSprinklesY;
                 this.phase = 'final_dialogue';
                 this.playMandatoryDialogue();
             }
+            return;
+        }
+
+        if (this.phase === 'final_dialogue') {
+            this.rua.facing = 'right';
             return;
         }
 

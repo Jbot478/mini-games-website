@@ -35,6 +35,7 @@ class DialogueSystem {
             'rua': '🐕',
             'man': '🧍🏻‍♂️',
             'cat': '🐱',
+            'bird': '🐦',
             'stoner_cat': '😸',
             'sprinkles': '🐶',
             'fish_lady': '🧜‍♀️',

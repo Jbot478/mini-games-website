@@ -12,6 +12,7 @@ class Level02_SpaceCombat {
             vy: 0,
             size: 50,
             emoji: '🐕',
+            facingRight: true,
             health: 5,  // Rua now has health
             maxHealth: 5
         };
@@ -82,6 +83,7 @@ class Level02_SpaceCombat {
     init(dialogueSystem) {
         console.log('🚨🚨🚨 LEVEL 2 INIT CALLED - PHASE:', this.phase, '🚨🚨🚨');
         this.dialogueSystem = dialogueSystem;
+        this.dialogueSystem.position = 'bottom';
         this.phase = 'pre_cinematic';
         this.cinematicTime = 0;
         this.endSequenceStarted = false;
@@ -159,8 +161,14 @@ class Level02_SpaceCombat {
         // Player movement with inertia
         if (input.up || input.w) this.rua.vy -= acceleration;
         if (input.down || input.s) this.rua.vy += acceleration;
-        if (input.left || input.a) this.rua.vx -= acceleration;
-        if (input.right || input.d) this.rua.vx += acceleration;
+        if (input.left || input.a) {
+            this.rua.vx -= acceleration;
+            this.rua.facingRight = false;
+        }
+        if (input.right || input.d) {
+            this.rua.vx += acceleration;
+            this.rua.facingRight = true;
+        }
 
         // Apply inertia
         this.rua.vx *= inertia;
@@ -343,11 +351,11 @@ class Level02_SpaceCombat {
     }
 
     fireLaser() {
-        const angle = 0; // Fire forward (right)
+        const laserDir = this.rua.facingRight ? 1 : -1;
         this.lasers.push({
-            x: this.rua.x + 30,
+            x: this.rua.x + (laserDir > 0 ? 30 : -30),
             y: this.rua.y,
-            vx: 8,
+            vx: 8 * laserDir,
             vy: 0,
             size: 5,
             active: true
@@ -459,19 +467,9 @@ class Level02_SpaceCombat {
             ctx.fillText('🐕', -18, 8);
             ctx.restore();
         } else if (this.phase === 'end_cutscene') {
-            // Rua facing LEFT toward weapon before crash
-            ctx.font = '50px Arial';
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillText('🐕', -(this.rua.x - 25), this.rua.y + 10);
-            ctx.restore();
+            this.drawRuaInBasket(this.rua.x, this.rua.y, this.rua.facingRight);
         } else {
-            // Normal gameplay - facing LEFT (flipped from original)
-            ctx.font = '50px Arial';
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillText('🐕', -(this.rua.x - 25), this.rua.y + 10);
-            ctx.restore();
+            this.drawRuaInBasket(this.rua.x, this.rua.y, this.rua.facingRight);
         }
 
         if (this.dialogueSystem) {
@@ -504,6 +502,37 @@ class Level02_SpaceCombat {
         ctx.fillText('ZERO GRAVITY, ZERO PATIENCE', w / 2, h / 2);
         ctx.textAlign = 'left';
         ctx.globalAlpha = 1;
+    }
+
+    drawRuaInBasket(x, y, facingRight = true) {
+        const ctx = this.ctx;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        if (facingRight) {
+            ctx.scale(-1, 1);
+        }
+
+        // Rua first, then basket in front so only top half appears outside basket
+        ctx.font = '52px Arial';
+        ctx.fillText('🐕', -26, 8);
+
+        // Yellow basket body
+        ctx.fillStyle = '#FFD54A';
+        ctx.fillRect(-34, 6, 68, 46);
+
+        // Basket rim
+        ctx.fillStyle = '#F4B400';
+        ctx.fillRect(-38, 2, 76, 10);
+
+        // Basket weave stripes
+        ctx.fillStyle = '#E0A800';
+        ctx.fillRect(-34, 18, 68, 3);
+        ctx.fillRect(-34, 30, 68, 3);
+        ctx.fillRect(-34, 42, 68, 3);
+
+        ctx.restore();
     }
 
     isComplete() {

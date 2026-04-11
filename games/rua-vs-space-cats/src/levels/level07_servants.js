@@ -33,6 +33,8 @@ class Level07_Servants {
             active: false,
             completed: false,
             index: 0,
+            typing: false,
+            answerText: '',
             questions: [
                 {
                     q: 'What did Jeff have for lunch?',
@@ -79,6 +81,7 @@ class Level07_Servants {
         this.nextAmbientAt = 5500;
         this.ambientMessage = '';
         this.ambientMessageTimer = 0;
+        this.boundQuizKeyDown = (e) => this.handleQuizKeyDown(e);
     }
 
     createHumans() {
@@ -163,6 +166,12 @@ class Level07_Servants {
         this.dialogueSystem = dialogueSystem;
         this.dialogueSystem.position = 'top';
         audioSystem.playMusic('servants');
+        this.quiz.active = false;
+        this.quiz.completed = false;
+        this.quiz.index = 0;
+        this.quiz.typing = false;
+        this.quiz.answerText = '';
+        this.quiz.listenerAttached = false;
 
         this.dialogueSystem.show(
             ['Ugh. A whole town of humans.', 'Try to look useful while I investigate.'],
@@ -186,20 +195,60 @@ class Level07_Servants {
     }
 
     handleGuardInteraction() {
-        if (!this.objectiveDone) {
-            this.dialogueSystem.show(
-                ['You can’t go in there yet.', 'Talk to the villagers first.'],
-                'guard'
-            );
-            return;
-        }
-
         if (this.quiz.completed) {
             this.dialogueSystem.show(['You may enter.'], 'guard');
             return;
         }
 
+        this.dialogueSystem.show(
+            ['You may only enter if you answer my questions correctly.'],
+            'guard'
+        );
         this.quiz.active = true;
+        this.quiz.typing = false;
+        this.quiz.answerText = '';
+    }
+
+    startTextAnswer() {
+        this.quiz.typing = true;
+        this.quiz.answerText = '';
+        if (!this.quiz.listenerAttached) {
+            window.addEventListener('keydown', this.boundQuizKeyDown);
+            this.quiz.listenerAttached = true;
+        }
+    }
+
+    stopTextAnswer() {
+        this.quiz.typing = false;
+        if (this.quiz.listenerAttached) {
+            window.removeEventListener('keydown', this.boundQuizKeyDown);
+            this.quiz.listenerAttached = false;
+        }
+    }
+
+    handleQuizKeyDown(e) {
+        if (!this.quiz.active || this.quiz.completed) return;
+        const current = this.quiz.questions[this.quiz.index];
+        if (!current || current.type !== 'text' || !this.quiz.typing) return;
+
+        const key = e.key;
+
+        if (key === 'Enter') {
+            e.preventDefault();
+            this.submitTextAnswer();
+            return;
+        }
+
+        if (key === 'Backspace') {
+            e.preventDefault();
+            this.quiz.answerText = this.quiz.answerText.slice(0, -1);
+            return;
+        }
+
+        if (key.length === 1) {
+            e.preventDefault();
+            this.quiz.answerText += key;
+        }
     }
 
     checkAnswer(rawAnswer) {
@@ -219,10 +268,24 @@ class Level07_Servants {
             return;
         }
 
-        const userAnswer = prompt(current.q);
-        if (userAnswer === null) return;
+        if (!this.quiz.typing) {
+            this.startTextAnswer();
+            return;
+        }
+
+        this.submitTextAnswer();
+    }
+
+    submitTextAnswer() {
+        if (!this.quiz.active || this.quiz.completed) return;
+
+        const current = this.quiz.questions[this.quiz.index];
+        if (!current || current.type !== 'text') return;
+
+        const userAnswer = this.quiz.answerText;
 
         if (this.checkAnswer(userAnswer)) {
+            this.stopTextAnswer();
             this.quiz.active = false;
             const snide = this.quiz.snideResponses[this.quiz.index] || 'Correct.';
             this.dialogueSystem.show([snide], 'rua', () => {
@@ -233,9 +296,12 @@ class Level07_Servants {
                     this.dialogueSystem.show(['Fine. You remembered things.', 'Door is unlocked.'], 'guard');
                 } else {
                     this.quiz.active = true;
+                    this.quiz.typing = false;
+                    this.quiz.answerText = '';
                 }
             });
         } else {
+            this.stopTextAnswer();
             this.quiz.active = false; // close card on wrong answer
             this.dialogueSystem.show(['Wrong.', 'Pay attention and try again.'], 'guard');
         }
@@ -248,6 +314,8 @@ class Level07_Servants {
 
         if (choiceIndex === current.correctChoice) {
             this.quiz.active = false;
+            this.quiz.typing = false;
+            this.quiz.answerText = '';
             const snide = this.quiz.snideResponses[this.quiz.index] || 'Correct.';
             this.dialogueSystem.show([snide], 'rua', () => {
                 this.quiz.index++;
@@ -341,7 +409,23 @@ class Level07_Servants {
         } else {
             ctx.font = '18px Arial';
             ctx.fillStyle = '#444';
-            ctx.fillText('Press ENTER to type your answer', x + cardW / 2, y + cardH - 28);
+            ctx.fillText('Type your answer below and press ENTER', x + cardW / 2, y + cardH - 64);
+
+            const inputX = x + 60;
+            const inputY = y + cardH - 56;
+            const inputW = cardW - 120;
+            const inputH = 38;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(inputX, inputY, inputW, inputH);
+            ctx.strokeStyle = '#7a5db1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(inputX, inputY, inputW, inputH);
+            ctx.fillStyle = '#2b2340';
+            ctx.font = '20px Arial';
+            const cursor = this.quiz.typing && Math.floor(this.phaseTime / 400) % 2 === 0 ? '|' : '';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.quiz.answerText + cursor, inputX + inputW / 2, inputY + 25);
+            ctx.textAlign = 'left';
         }
         ctx.textAlign = 'left';
     }
@@ -495,10 +579,10 @@ class Level07_Servants {
         ctx.fillRect(14, 10, 340, 58);
         ctx.fillStyle = 'white';
         ctx.font = 'bold 14px Arial';
-        ctx.fillText(`Talk to villagers: ${this.peopleTalked}/5`, 24, 32);
+        ctx.fillText(`Villagers talked to: ${this.peopleTalked}/5 (optional)`, 24, 32);
         ctx.font = '13px Arial';
         if (!this.objectiveDone) {
-            ctx.fillText('Objective: Gather information', 24, 52);
+            ctx.fillText('Objective: You can head to the guard anytime', 24, 52);
         } else if (!this.quiz.completed) {
             ctx.fillText(`Objective: Answer guard questions (${this.quiz.index}/${this.quiz.questions.length})`, 24, 52);
         } else {
@@ -554,7 +638,10 @@ class Level07_Servants {
             this.guard.inRange = Math.hypot(this.rua.x - this.guard.x, this.rua.y - this.guard.y) < 95;
 
             if (this.quiz.active && enterJustPressed && !dialogueWasActive) {
-                this.answerCurrentQuestion();
+                const current = this.quiz.questions[this.quiz.index];
+                if (current && current.type === 'text') {
+                    this.answerCurrentQuestion();
+                }
             } else if (enterJustPressed && !dialogueWasActive) {
                 const human = this.humans.find(h => h.inRange);
                 if (human) {
@@ -582,6 +669,13 @@ class Level07_Servants {
                         this.complete = true;
                     }
                 );
+            }
+
+            if (this.quiz.active && !dialogueWasActive) {
+                const current = this.quiz.questions[this.quiz.index];
+                if (current && current.type === 'text' && !this.quiz.typing) {
+                    this.startTextAnswer();
+                }
             }
 
             // Ambient random non-blocking Rua comments

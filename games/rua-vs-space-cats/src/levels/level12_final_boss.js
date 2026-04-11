@@ -3,8 +3,8 @@ class Level12_FinalBoss {
     constructor(canvas, ctx) {
         this.canvas = canvas;
         this.ctx = ctx;
-        this.rua = { x: 100, y: canvas.height / 2, vx: 0, vy: 0, health: 10, size: 50, emoji: '🐕' };
-        this.sprinkles = { x: canvas.width - 150, y: canvas.height / 2, health: 15, attackTimer: 0, emoji: '🐶' };
+        this.rua = { x: 100, y: canvas.height / 2, vx: 0, vy: 0, health: 10, size: 50, emoji: '🐕', facingRight: true };
+        this.sprinkles = { x: canvas.width - 150, y: canvas.height / 2, vx: 0, vy: 0, health: 15, attackTimer: 0, emoji: '🐶', facingRight: true };
         this.lasers = [];
         this.enemyProjectiles = [];
         this.stars = this.generateStars(100);
@@ -28,10 +28,10 @@ class Level12_FinalBoss {
 
     init(dialogueSystem) {
         this.dialogueSystem = dialogueSystem;
-        audioSystem.playMusic('boss');
+        audioSystem.playMusic('boss_ff8');
 
         this.dialogueSystem.show(
-            'You never deserved everything.',
+            'You never deserved anything.',
             'sprinkles',
             () => {
                 this.dialogueSystem.show(
@@ -70,8 +70,14 @@ class Level12_FinalBoss {
         // Player movement
         if (input.up || input.w) this.rua.vy -= acceleration;
         if (input.down || input.s) this.rua.vy += acceleration;
-        if (input.left || input.a) this.rua.vx -= acceleration;
-        if (input.right || input.d) this.rua.vx += acceleration;
+        if (input.left || input.a) {
+            this.rua.vx -= acceleration;
+            this.rua.facingRight = false;
+        }
+        if (input.right || input.d) {
+            this.rua.vx += acceleration;
+            this.rua.facingRight = true;
+        }
 
         this.rua.vx *= inertia;
         this.rua.vy *= inertia;
@@ -87,6 +93,44 @@ class Level12_FinalBoss {
 
         this.rua.x = Math.max(50, Math.min(this.canvas.width - 50, this.rua.x));
         this.rua.y = Math.max(50, Math.min(this.canvas.height - 50, this.rua.y));
+
+        // Sprinkles movement
+        const targetDx = this.rua.x - this.sprinkles.x;
+        const targetDy = this.rua.y - this.sprinkles.y;
+        const targetDist = Math.max(1, Math.sqrt(targetDx ** 2 + targetDy ** 2));
+        const desiredDistance = 220;
+        const enemyAccel = 0.18;
+        const enemyInertia = 0.94;
+        const enemyMaxSpeed = 3.8;
+
+        // Keep distance from Rua
+        if (targetDist > desiredDistance + 20) {
+            this.sprinkles.vx += (targetDx / targetDist) * enemyAccel;
+            this.sprinkles.vy += (targetDy / targetDist) * enemyAccel;
+        } else if (targetDist < desiredDistance - 20) {
+            this.sprinkles.vx -= (targetDx / targetDist) * enemyAccel;
+            this.sprinkles.vy -= (targetDy / targetDist) * enemyAccel;
+        }
+
+        // Add gentle strafe so movement feels active
+        const strafe = Math.sin(this.phaseTime * 0.0035) * 0.14;
+        this.sprinkles.vx += (-targetDy / targetDist) * strafe;
+        this.sprinkles.vy += (targetDx / targetDist) * strafe;
+
+        this.sprinkles.vx *= enemyInertia;
+        this.sprinkles.vy *= enemyInertia;
+
+        const enemySpeed = Math.sqrt(this.sprinkles.vx ** 2 + this.sprinkles.vy ** 2);
+        if (enemySpeed > enemyMaxSpeed) {
+            this.sprinkles.vx = (this.sprinkles.vx / enemySpeed) * enemyMaxSpeed;
+            this.sprinkles.vy = (this.sprinkles.vy / enemySpeed) * enemyMaxSpeed;
+        }
+
+        this.sprinkles.x += this.sprinkles.vx;
+        this.sprinkles.y += this.sprinkles.vy;
+        this.sprinkles.x = Math.max(60, Math.min(this.canvas.width - 60, this.sprinkles.x));
+        this.sprinkles.y = Math.max(60, Math.min(this.canvas.height - 60, this.sprinkles.y));
+        this.sprinkles.facingRight = this.sprinkles.x < this.rua.x;
 
         // Shooting
         if (input.space && !this.lastSpace) {
@@ -144,10 +188,11 @@ class Level12_FinalBoss {
     }
 
     fireLaser() {
+        const dir = this.rua.facingRight ? 1 : -1;
         this.lasers.push({
-            x: this.rua.x + 30,
+            x: this.rua.x + (dir > 0 ? 30 : -30),
             y: this.rua.y,
-            vx: 8,
+            vx: 8 * dir,
             vy: 0,
             active: true
         });
@@ -207,10 +252,9 @@ class Level12_FinalBoss {
             ctx.fill();
         });
 
-        // Sprinkles
+        // Sprinkles in box
         if (this.sprinkles.health > 0) {
-            ctx.font = '60px Arial';
-            ctx.fillText(this.sprinkles.emoji, this.sprinkles.x - 30, this.sprinkles.y);
+            this.drawCharacterInBox(this.sprinkles.x, this.sprinkles.y, this.sprinkles.emoji, this.sprinkles.facingRight);
 
             // Health bar
             ctx.fillStyle = '#ff0000';
@@ -219,9 +263,8 @@ class Level12_FinalBoss {
             ctx.fillRect(this.sprinkles.x - 40, this.sprinkles.y - 60, (80 * this.sprinkles.health) / 15, 10);
         }
 
-        // Player
-        ctx.font = '50px Arial';
-        ctx.fillText(this.rua.emoji, this.rua.x - 25, this.rua.y);
+        // Player in basket
+        this.drawCharacterInBasket(this.rua.x, this.rua.y, this.rua.emoji, this.rua.facingRight);
 
         // Health bar
         ctx.fillStyle = '#ff0000';
@@ -236,5 +279,67 @@ class Level12_FinalBoss {
 
     isComplete() {
         return this.complete;
+    }
+
+    drawCharacterInBasket(x, y, emoji, facingRight = true) {
+        const ctx = this.ctx;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        if (facingRight) {
+            ctx.scale(-1, 1);
+        }
+
+        // Character first so basket front hides lower half
+        ctx.font = '52px Arial';
+        ctx.fillText(emoji, -26, 8);
+
+        // Basket body
+        ctx.fillStyle = '#FFD54A';
+        ctx.fillRect(-34, 6, 68, 46);
+
+        // Rim
+        ctx.fillStyle = '#F4B400';
+        ctx.fillRect(-38, 2, 76, 10);
+
+        // Weave lines
+        ctx.fillStyle = '#E0A800';
+        ctx.fillRect(-34, 18, 68, 3);
+        ctx.fillRect(-34, 30, 68, 3);
+        ctx.fillRect(-34, 42, 68, 3);
+
+        ctx.restore();
+    }
+
+    drawCharacterInBox(x, y, emoji, facingRight = true) {
+        const ctx = this.ctx;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        if (facingRight) {
+            ctx.scale(-1, 1);
+        }
+
+        // Character first so box front hides lower half
+        ctx.font = '52px Arial';
+        ctx.fillText(emoji, -26, 8);
+
+        // Box body
+        ctx.fillStyle = '#B06A3B';
+        ctx.fillRect(-36, 6, 72, 48);
+
+        // Box rim/top edge
+        ctx.fillStyle = '#C27A48';
+        ctx.fillRect(-40, 0, 80, 10);
+
+        // Cardboard seam + subtle tape strip
+        ctx.fillStyle = '#8A4F2D';
+        ctx.fillRect(-1, 10, 2, 44);
+        ctx.fillStyle = '#D9C08A';
+        ctx.fillRect(-9, 2, 18, 6);
+
+        ctx.restore();
     }
 }

@@ -47,13 +47,14 @@ class Level00_Opening {
             { speaker: 'man', text: 'Be quiet!' },
             { speaker: 'rua', text: 'YOU FOOL there are evil tiny fluffy idiots trying to murder us in the night!' },
             { speaker: 'man', text: 'You are very cute but I do not know what you are saying so go to bed.' },
-            { speaker: 'rua', text: 'Fine I will save us. Good luck cleaning my poop off the carpet later loser.' },
+            { speaker: 'rua', text: 'Fine I will save us. Goodluck cleaning the box of chocolates I tore apart.' },
             { speaker: 'rua', text: 'Time to get in my basket and save the world!' } // NEW!
         ];
     }
 
     init(dialogueSystem) {
         this.dialogueSystem = dialogueSystem;
+        this.dialogueSystem.position = 'top';
         this.step = 0;
         this.stepTimer = 0;
         this.lastDialogueActive = false;
@@ -243,15 +244,20 @@ class Level00_Opening {
         ctx.fillStyle = '#2b1810';
         ctx.fillRect(0, h - 100, w, 100);
 
+        const windowX = 50;
+        const windowY = 90;
+        const windowW = 300;
+        const windowH = 250;
+
         // Window
         ctx.fillStyle = '#000';
-        ctx.fillRect(50, 50, 300, 250);
+        ctx.fillRect(windowX, windowY, windowW, windowH);
 
         // Stars INSIDE window
         for (let i = 0; i < 30; i++) {
             ctx.fillStyle = 'white';
-            const starX = 60 + (i * 19) % 280;
-            const starY = 60 + (i * 13) % 230;
+            const starX = windowX + 10 + (i * 19) % (windowW - 20);
+            const starY = windowY + 10 + (i * 13) % (windowH - 20);
             ctx.fillRect(starX, starY, 2, 2);
         }
 
@@ -260,18 +266,18 @@ class Level00_Opening {
             const flash = Math.sin(this.flashTimer * 0.005 + cat.phase) * 0.5 + 0.5;
             ctx.globalAlpha = 0.3 + flash * 0.7; // Flash between 0.3 and 1.0
             ctx.font = '32px Arial';
-            ctx.fillText('😾', cat.x, cat.y);
+            ctx.fillText('😾', cat.x, cat.y + 40);
         });
         ctx.globalAlpha = 1;
 
         // Window frame
         ctx.strokeStyle = '#3d2817';
         ctx.lineWidth = 12;
-        ctx.strokeRect(50, 50, 300, 250);
+        ctx.strokeRect(windowX, windowY, windowW, windowH);
 
         // Couch
         ctx.fillStyle = '#4a3520';
-        ctx.fillRect(400, h - 180, 200, 80);
+        ctx.fillRect(340, h - 220, 320, 120);
 
         // Lamp
         ctx.fillStyle = '#ffa500';
@@ -294,7 +300,7 @@ class Level00_Opening {
 
         // Man
         if (this.man.x < w) {
-            ctx.font = '80px Arial';
+            ctx.font = '160px Arial';
             ctx.fillText(this.man.emoji, this.man.x, this.man.y);
         }
 
@@ -302,7 +308,7 @@ class Level00_Opening {
         if (this.step < 9 || this.rua.y >= this.basket.y - 40) {
             ctx.save();
             ctx.font = '60px Arial';
-            if (!this.rua.facingRight) {
+            if (this.rua.facingRight) {
                 ctx.translate(this.rua.x + 30, 0);
                 ctx.scale(-1, 1);
                 ctx.fillText(this.rua.emoji, 0, this.rua.y);

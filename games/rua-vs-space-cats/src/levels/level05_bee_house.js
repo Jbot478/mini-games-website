@@ -10,6 +10,7 @@ class Level05_BeeHouse {
             y: canvas.height - 150,
             vy: 0,
             grounded: true,
+            facingRight: true,
             canDoubleJump: false,
             hasDoubleJumped: false,
             size: 50,
@@ -17,38 +18,62 @@ class Level05_BeeHouse {
         };
 
         this.bee = {
-            x: canvas.width - 230,
+            x: canvas.width - 170,
             y: canvas.height - 155,
             size: 80,
             flinchTimer: 0,
             inspected: false
         };
 
-        this.stonerCat = { x: 300, y: canvas.height - 150, emoji: '😸' };
+        this.stonerCat = {
+            x: 360,
+            y: canvas.height - 150,
+            emoji: '😸',
+            spoken: false,
+            catLine: 'Snacks? The village sends them through Mountain Valley. But you have to go up the mountain to get there which requires jumping high which dogs can\'t do.',
+            ruaLine: 'Rude and unhelpful, yet weirdly informative.'
+        };
         this.optionalCats = [
             {
-                x: 220,
+                x: 170,
                 y: canvas.height - 150,
                 emoji: '😺',
                 spoken: false,
-                catLine: 'Whoa… did you see that dust bunny?',
-                ruaLine: 'Fellow cat, keep your focus! There’s a bee menace afoot!'
+                catLine: 'Whoa… I want snacks, but first the bee drama, right?',
+                ruaLine: 'Yes, bee first, snacks second, dignity always.'
             },
             {
-                x: 760,
+                x: 620,
                 y: canvas.height - 150,
                 emoji: '🐱',
                 spoken: false,
-                catLine: 'I think the ceiling is judging me.',
-                ruaLine: 'Of course it is. Everything judges me, but I remain fabulous.'
+                useSequence: true,
+                sequence: [
+                    { speaker: 'rua', text: 'Hey there, tiny mess. Have you any snacks that don\'t smell of cat piss? Or perhaps my beepbop-ulator?' },
+                    { speaker: 'cat', text: 'Whoa, I feel like the ceiling is judging me.' },
+                    { speaker: 'rua', text: 'You seem like the type that\'s used to being judged.' },
+                    { speaker: 'cat', text: 'You\'re being kind of mean.' },
+                    { speaker: 'rua', text: 'Well, the ceiling and I are going to go back to talking about you behind your back.' },
+                    { speaker: 'cat', text: 'AH!' }
+                ]
             },
             {
                 x: 860,
                 y: canvas.height - 150,
                 emoji: '😼',
                 spoken: false,
-                catLine: 'You’re… a dog, right?',
-                ruaLine: 'Yes, but don’t worry, I am saving you all, just like that time with the idiot Shih-tzu from across the road.'
+                useSequence: true,
+                sequence: [
+                    { speaker: 'rua', text: 'I assume you are useless, but I\'ll ask anyways. Have you any snacks?' },
+                    { speaker: 'cat', text: 'Yeah, we got snacks, lil bro.' },
+                    { speaker: 'rua', text: 'OH GREAT! I will have a well done steak with the little kibble I like mixed in.' },
+                    { speaker: 'cat', text: 'Huh?' },
+                    { speaker: 'rua', text: 'Yes, when my servants cook me food, they put in a little chewy kibble.' },
+                    { speaker: 'cat', text: 'Whoa, that sounds hard. You should ask the people up the mountain.' },
+                    { speaker: 'rua', text: 'Useless! Oh, I forgot about the bee.' },
+                    { speaker: 'rua', text: 'NOBODY PANIC! I WILL SAVE US!!' },
+                    { speaker: 'cat', text: 'Shhh.' }
+                ]
             }
         ];
         this.catnipPile = { x: 520, y: canvas.height - 120, width: 70, height: 28 };
@@ -87,6 +112,7 @@ class Level05_BeeHouse {
 
     init(dialogueSystem) {
         this.dialogueSystem = dialogueSystem;
+        this.dialogueSystem.position = 'top';
         this.phase = 'entry';
         this.entryDialogueStep = 1;
         this.entryDialogueDelay = 700;
@@ -178,11 +204,21 @@ class Level05_BeeHouse {
 
             // Optional cat chatter interactions
             if (this.phase === 'explore' && enterJustPressed && !usedEnterForDialogue && !dialogueActive) {
-                const nearbyCat = this.optionalCats.find(cat => Math.abs(this.rua.x - cat.x) < 75);
+                const talkCats = [this.optionalCats[0], this.stonerCat, this.optionalCats[1], this.optionalCats[2]];
+                const nearbyCat = talkCats.find(cat => Math.abs(this.rua.x - cat.x) < 75);
                 if (nearbyCat) {
-                    this.dialogueSystem.show(nearbyCat.catLine, 'cat', () => {
-                        this.dialogueSystem.show(nearbyCat.ruaLine, 'rua');
-                    });
+                    if (nearbyCat === this.optionalCats[0]) {
+                        this.dialogueSystem.show('Hello tiny menace have you any snacks? I will save us from the bee in exchange for treats.', 'rua', () => {
+                            this.dialogueSystem.show(nearbyCat.catLine, 'cat');
+                        });
+                    } else if (nearbyCat.useSequence) {
+                        // Run multi-line sequence dialogue
+                        this.runCatSequence(nearbyCat.sequence);
+                    } else {
+                        this.dialogueSystem.show(nearbyCat.catLine, 'cat', () => {
+                            this.dialogueSystem.show(nearbyCat.ruaLine, 'rua');
+                        });
+                    }
                     nearbyCat.spoken = true;
                 }
             }
@@ -206,7 +242,7 @@ class Level05_BeeHouse {
             if (enterJustPressed && !usedEnterForDialogue) {
                 const catnipDistance = Math.abs(this.rua.x - this.catnipPile.x);
                 if (catnipDistance < 80 && !canInspectBee && !dialogueActive) {
-                    this.dialogueSystem.show('That catnip pile is aggressively suspicious.', 'rua');
+                    this.dialogueSystem.show('This catnip feels aggressively suspicious. Ugly Shih Tzu across the road energy.', 'rua');
                 }
             }
         }
@@ -255,6 +291,16 @@ class Level05_BeeHouse {
                 this.postUnlockStep = 2;
                 this.dialogueSystem.show('Double jump unlocked.', 'rua', () => {
                     saveSystem.unlockAbility('double_jump');
+                    this.postUnlockStep = 3;
+                });
+            } else if (this.postUnlockStep === 3) {
+                this.postUnlockStep = 4;
+                this.dialogueSystem.show('Goodbye fluffy losers thank you for absolutely nothing.', 'rua', () => {
+                    this.postUnlockStep = 5;
+                });
+            } else if (this.postUnlockStep === 5) {
+                this.postUnlockStep = 6;
+                this.dialogueSystem.show('I won\'t forget this but I will certainly try.', 'rua', () => {
                     this.phase = 'explore_post_puzzle';
                 });
             }
@@ -279,8 +325,14 @@ class Level05_BeeHouse {
         const jumpPower = -12;
         const moveSpeed = 3;
 
-        if (input.left || input.a) this.rua.x -= moveSpeed;
-        if (input.right || input.d) this.rua.x += moveSpeed;
+        if (input.left || input.a) {
+            this.rua.x -= moveSpeed;
+            this.rua.facingRight = false;
+        }
+        if (input.right || input.d) {
+            this.rua.x += moveSpeed;
+            this.rua.facingRight = true;
+        }
 
         if (!scriptedJump) {
             if (input.space && this.rua.grounded && !this.lastSpace) {
@@ -325,6 +377,17 @@ class Level05_BeeHouse {
         this.autoDoubleJumpTriggered = false;
         this.autoDoubleJumpComplete = false;
         audioSystem.playMusic('space_flight');
+    }
+
+    runCatSequence(sequence, index = 0) {
+        if (!sequence || index >= sequence.length) {
+            return;
+        }
+
+        const line = sequence[index];
+        this.dialogueSystem.show([line.text], line.speaker, () => {
+            this.runCatSequence(sequence, index + 1);
+        });
     }
 
     handleClick(canvasX, canvasY) {
@@ -440,10 +503,6 @@ class Level05_BeeHouse {
         }
 
         // Posters / decor (no text labels)
-        ctx.fillStyle = '#2f3e46';
-        ctx.fillRect(80, 180, 130, 90);
-        ctx.fillRect(250, 135, 110, 120);
-        ctx.fillRect(920, 160, 140, 95);
         ctx.fillStyle = '#e0fbfc';
         ctx.font = '34px Arial';
         ctx.fillText('😵‍💫', 122, 238);
@@ -458,16 +517,27 @@ class Level05_BeeHouse {
         ctx.fillRect(570, 180, 140, 12);
         ctx.globalAlpha = 1;
 
-        // Beanbags + coffee table
-        ctx.fillStyle = '#7a4e2d';
-        ctx.fillRect(690, h - 155, 160, 18);
+        // Big couch
+        ctx.fillStyle = '#4a2f68';
+        ctx.fillRect(640, h - 220, 360, 110);
+        ctx.fillStyle = '#6a3f92';
+        ctx.fillRect(655, h - 250, 330, 40);
+        ctx.fillRect(620, h - 210, 28, 90);
+        ctx.fillRect(992, h - 210, 28, 90);
         ctx.fillStyle = '#5f3c8a';
+        ctx.fillRect(700, h - 180, 80, 50);
+        ctx.fillRect(790, h - 180, 80, 50);
+        ctx.fillRect(880, h - 180, 80, 50);
+
+        // Cat tree decor
+        ctx.fillStyle = '#7a5a3a';
+        ctx.fillRect(1060, h - 265, 16, 145);
+        ctx.fillRect(1110, h - 245, 16, 125);
+        ctx.fillRect(1040, h - 275, 58, 14);
+        ctx.fillRect(1094, h - 255, 58, 14);
+        ctx.fillStyle = '#9b7a52';
         ctx.beginPath();
-        ctx.ellipse(730, h - 115, 55, 30, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#3a86ff';
-        ctx.beginPath();
-        ctx.ellipse(830, h - 112, 58, 33, 0, 0, Math.PI * 2);
+        ctx.arc(1118, h - 280, 18, 0, Math.PI * 2);
         ctx.fill();
 
         // Lava lamp
@@ -478,9 +548,11 @@ class Level05_BeeHouse {
         ctx.ellipse(1092, h - 165 + Math.sin(Date.now() * 0.004) * 6, 9, 13, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#7cfc00';
-        for (let i = 0; i < 6; i++) {
-            ctx.fillRect(100 + i * 150, h - 120, 40, 20);
+        // Snack tiles (replace green squares; catnip square remains separate)
+        const snackTiles = ['🍕', '🍟', '🍪', '🧁', '🍩', '🌮'];
+        ctx.font = '28px Arial';
+        for (let i = 0; i < snackTiles.length; i++) {
+            ctx.fillText(snackTiles[i], 102 + i * 150, h - 100);
         }
 
         ctx.fillStyle = '#6fe000';
@@ -495,6 +567,15 @@ class Level05_BeeHouse {
 
         ctx.font = '50px Arial';
         ctx.fillText(this.stonerCat.emoji, this.stonerCat.x - 25, this.stonerCat.y);
+
+        if (!dialogueActive && this.phase === 'explore' && Math.abs(this.rua.x - this.stonerCat.x) < 75) {
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.font = '15px Arial';
+            ctx.strokeText('[ENTER] Talk', this.stonerCat.x - 42, this.stonerCat.y - 40);
+            ctx.fillText('[ENTER] Talk', this.stonerCat.x - 42, this.stonerCat.y - 40);
+        }
 
         // Optional cats
         this.optionalCats.forEach(cat => {
@@ -543,8 +624,11 @@ class Level05_BeeHouse {
 
         ctx.font = '50px Arial';
         ctx.save();
-        ctx.scale(-1, 1);
-        ctx.fillText(this.rua.emoji, -(this.rua.x - 25), this.rua.y);
+        ctx.translate(this.rua.x, this.rua.y);
+        if (this.rua.facingRight) {
+            ctx.scale(-1, 1);
+        }
+        ctx.fillText(this.rua.emoji, -25, 0);
         ctx.restore();
 
         if (this.phase === 'puzzle') {
@@ -602,7 +686,7 @@ class Level05_BeeHouse {
 
         if (this.showUnlockBanner) {
             ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
-            ctx.fillRect(w / 2 - 250, h / 2 - 50, 500, 100);
+            ctx.fillRect(w / 2 - 320, h / 2 - 50, 640, 100);
             ctx.fillStyle = '#000';
             ctx.font = 'bold 32px Arial';
             ctx.textAlign = 'center';

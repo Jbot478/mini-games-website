@@ -55,6 +55,9 @@ class AudioSystem {
             case 'office':
                 this.playOfficeMusic();
                 break;
+            case 'liminal':
+                this.playLiminalMusic();
+                break;
             case 'flight':
                 this.playFlightMusic();
                 break;
@@ -63,6 +66,15 @@ class AudioSystem {
                 break;
             case 'boss':
                 this.playBossMusic();
+                break;
+            case 'boss_ff9':
+                this.playBossFF9Music();
+                break;
+            case 'boss_ff8':
+                this.playBossFF8Music();
+                break;
+            case 'ending_theme':
+                this.playEndingThemeMusic();
                 break;
             default:
                 console.warn(`Unknown music type: ${type}`);
@@ -130,75 +142,216 @@ class AudioSystem {
     }
 
     playSpaceCombatMusic() {
-        // Electronic space beat, playful but tense
+        // Faster, boss-like hybrid orchestral/synth combat groove
         const ctx = this.audioContext;
         const now = ctx.currentTime;
 
-        const playBeat = (time) => {
-            // Kick
-            const kick = ctx.createOscillator();
-            const kickGain = ctx.createGain();
-            kick.frequency.setValueAtTime(150, time);
-            kick.frequency.exponentialRampToValueAtTime(50, time + 0.1);
-            kickGain.gain.setValueAtTime(this.musicVolume, time);
-            kickGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
-            kick.connect(kickGain);
-            kickGain.connect(ctx.destination);
-            kick.start(time);
-            kick.stop(time + 0.2);
+        const beat = 0.19; // ~158 BPM
+        const barDuration = beat * 16;
 
-            // Hi-hat
-            const hihat = ctx.createOscillator();
-            const hihatGain = ctx.createGain();
-            hihat.frequency.setValueAtTime(8000, time);
-            hihatGain.gain.setValueAtTime(this.musicVolume * 0.1, time);
-            hihatGain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
-            hihat.connect(hihatGain);
-            hihatGain.connect(ctx.destination);
-            hihat.start(time);
-            hihat.stop(time + 0.05);
-        };
+        const chordProgression = [
+            [110.00, 130.81, 164.81], // Am
+            [98.00, 123.47, 146.83],  // G
+            [87.31, 110.00, 138.59],  // F
+            [82.41, 103.83, 130.81]   // E
+        ];
 
-        let beatTime = now;
-        const scheduleBeat = () => {
-            playBeat(beatTime);
-            playBeat(beatTime + 0.5);
-            beatTime += 1;
-            this.musicTimeout = setTimeout(scheduleBeat, 1000);
-        };
+        const bassRoots = [55.00, 49.00, 43.65, 41.20];
 
-        scheduleBeat();
-    }
+        const leadPhrases = [
+            [440.00, 493.88, 523.25, 659.25, 587.33, 523.25, 493.88, 440.00],
+            [440.00, 523.25, 587.33, 698.46, 659.25, 587.33, 523.25, 493.88],
+            [392.00, 440.00, 493.88, 587.33, 523.25, 493.88, 440.00, 392.00],
+            [369.99, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00, 369.99]
+        ];
 
-    playJungleMusic() {
-        // Drippy, alien jungle ambience
-        const ctx = this.audioContext;
-        const now = ctx.currentTime;
-
-        const playDrip = (time) => {
+        const playTone = (freq, start, dur, type = 'sawtooth', vol = 0.1) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
 
-            osc.frequency.setValueAtTime(800, time);
-            osc.frequency.exponentialRampToValueAtTime(200, time + 0.3);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
 
-            gain.gain.setValueAtTime(this.musicVolume * 0.2, time);
-            gain.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + dur);
+        };
+
+        const playKick = (time) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(160, time);
+            osc.frequency.exponentialRampToValueAtTime(45, time + 0.11);
+
+            gain.gain.setValueAtTime(this.musicVolume * 0.65, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.12);
 
             osc.connect(gain);
             gain.connect(ctx.destination);
             osc.start(time);
-            osc.stop(time + 0.4);
+            osc.stop(time + 0.12);
         };
 
-        let time = now;
-        const scheduleDrips = () => {
-            playDrip(time);
-            time += Math.random() * 2 + 1;
-            this.musicTimeout = setTimeout(scheduleDrips, (Math.random() * 2 + 1) * 1000);
+        const playBassPulse = (time, vol = 0.12) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(95, time);
+            osc.frequency.exponentialRampToValueAtTime(70, time + 0.06);
+
+            gain.gain.setValueAtTime(this.musicVolume * vol, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.08);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.08);
         };
 
-        scheduleDrips();
+        let barTime = now;
+        let barIndex = 0;
+
+        const scheduleBar = () => {
+            const chord = chordProgression[barIndex % chordProgression.length];
+            const root = bassRoots[barIndex % bassRoots.length];
+            const lead = leadPhrases[barIndex % leadPhrases.length];
+
+            // Driving drums across 16 steps
+            for (let step = 0; step < 16; step++) {
+                const t = barTime + step * beat;
+                if (step === 0 || step === 6 || step === 8 || step === 12) {
+                    playKick(t);
+                }
+                if (step % 2 === 1 || step === 14) {
+                    playBassPulse(t + 0.01, step === 14 ? 0.16 : 0.11);
+                }
+            }
+
+            // Pulsing low bassline
+            for (let i = 0; i < 8; i++) {
+                const t = barTime + i * beat * 2;
+                const freq = i % 2 === 0 ? root : root * 1.5;
+                playTone(freq, t, beat * 1.6, 'square', 0.15);
+            }
+
+            // Strings-like chord pad stabs
+            for (let i = 0; i < 4; i++) {
+                const t = barTime + i * beat * 4;
+                chord.forEach((f, idx) => {
+                    playTone(f * (idx === 0 ? 1 : 2), t + idx * 0.01, beat * 3.2, 'triangle', 0.06);
+                });
+            }
+
+            // Aggressive lead phrase on top
+            for (let i = 0; i < lead.length; i++) {
+                const t = barTime + i * beat * 2;
+                const n = lead[i];
+                playTone(n, t, beat * 1.55, 'sawtooth', 0.12);
+                playTone(n * 0.5, t, beat * 1.55, 'triangle', 0.035);
+            }
+
+            barIndex++;
+            barTime += barDuration;
+            this.musicTimeout = setTimeout(scheduleBar, barDuration * 1000);
+        };
+
+        scheduleBar();
+    }
+
+    playJungleMusic() {
+        // Jungle tribe vibe: hand-drum rhythm, earthy bass, and bamboo-flute lead
+        const ctx = this.audioContext;
+        const now = ctx.currentTime;
+
+        const beat = 0.24; // ~125 BPM
+        const barDuration = beat * 16;
+
+        const bassRoots = [73.42, 82.41, 87.31, 82.41]; // D, E, F, E
+        const flutePhrases = [
+            [293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66, 261.63],
+            [293.66, 349.23, 392.00, 440.00, 392.00, 349.23, 329.63, 293.66],
+            [261.63, 293.66, 329.63, 392.00, 349.23, 329.63, 293.66, 261.63],
+            [293.66, 329.63, 349.23, 329.63, 293.66, 261.63, 246.94, 261.63]
+        ];
+
+        const playTone = (freq, start, dur, type = 'sine', vol = 0.1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
+
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + dur);
+        };
+
+        const playDrum = (time, strength = 1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(180, time);
+            osc.frequency.exponentialRampToValueAtTime(65, time + 0.09);
+
+            gain.gain.setValueAtTime(this.musicVolume * 0.42 * strength, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.1);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.1);
+        };
+
+        let barTime = now;
+        let barIndex = 0;
+
+        const scheduleBar = () => {
+            const root = bassRoots[barIndex % bassRoots.length];
+            const flute = flutePhrases[barIndex % flutePhrases.length];
+
+            // Tribal drum pattern (16-step)
+            for (let step = 0; step < 16; step++) {
+                const t = barTime + step * beat;
+                if (step === 0 || step === 3 || step === 6 || step === 8 || step === 11 || step === 14) {
+                    playDrum(t, (step === 0 || step === 8) ? 1.2 : 0.9);
+                }
+            }
+
+            // Deep earthy bass pulse
+            for (let i = 0; i < 8; i++) {
+                const t = barTime + i * beat * 2;
+                const freq = (i % 3 === 0) ? root : root * 1.25;
+                playTone(freq, t, beat * 1.6, 'triangle', 0.12);
+            }
+
+            // Flute-like melody on top
+            for (let i = 0; i < flute.length; i++) {
+                const t = barTime + i * beat * 2;
+                const n = flute[i];
+                playTone(n, t, beat * 1.7, 'sine', 0.10);
+                playTone(n * 2, t + 0.02, beat * 1.1, 'triangle', 0.022);
+            }
+
+            barIndex++;
+            barTime += barDuration;
+            this.musicTimeout = setTimeout(scheduleBar, barDuration * 1000);
+        };
+
+        scheduleBar();
     }
 
     playVillageMusic() {
@@ -327,37 +480,111 @@ class AudioSystem {
     }
 
     playMountainMusic() {
-        // Tense, rhythmic climb music
+        // Fast chase-like climb track with punchy rhythm and urgent lead
         const ctx = this.audioContext;
         const now = ctx.currentTime;
 
-        let time = now;
-        const pattern = [1, 0, 1, 1, 0, 1, 0, 0];
-        let beat = 0;
+        const beat = 0.185; // ~162 BPM
+        const barDuration = beat * 16;
 
-        const playBeat = () => {
-            if (pattern[beat % pattern.length]) {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+        const roots = [82.41, 98.00, 110.00, 98.00]; // E, G, A, G
+        const leadPhrases = [
+            [329.63, 392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00],
+            [349.23, 415.30, 466.16, 523.25, 587.33, 523.25, 466.16, 415.30],
+            [329.63, 392.00, 466.16, 523.25, 587.33, 523.25, 466.16, 392.00],
+            [311.13, 369.99, 440.00, 493.88, 523.25, 493.88, 440.00, 369.99]
+        ];
 
-                osc.frequency.value = 110;
-                osc.type = 'square';
+        const playTone = (freq, start, dur, type = 'sawtooth', vol = 0.1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
 
-                gain.gain.setValueAtTime(this.musicVolume * 0.4, time);
-                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
 
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(time);
-                osc.stop(time + 0.1);
-            }
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
-            beat++;
-            time += 0.25;
-            this.musicTimeout = setTimeout(playBeat, 250);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + dur);
         };
 
-        playBeat();
+        const playKick = (time, strength = 1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(170, time);
+            osc.frequency.exponentialRampToValueAtTime(50, time + 0.095);
+
+            gain.gain.setValueAtTime(this.musicVolume * 0.6 * strength, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.1);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.1);
+        };
+
+        const playSnare = (time) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320, time);
+            osc.frequency.exponentialRampToValueAtTime(180, time + 0.06);
+
+            gain.gain.setValueAtTime(this.musicVolume * 0.23, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.08);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(time);
+            osc.stop(time + 0.08);
+        };
+
+        let barTime = now;
+        let barIndex = 0;
+
+        const scheduleBar = () => {
+            const root = roots[barIndex % roots.length];
+            const lead = leadPhrases[barIndex % leadPhrases.length];
+
+            // Drum grid
+            for (let step = 0; step < 16; step++) {
+                const t = barTime + step * beat;
+                if (step === 0 || step === 4 || step === 8 || step === 12 || step === 14) {
+                    playKick(t, step === 0 || step === 8 ? 1.15 : 0.9);
+                }
+                if (step === 4 || step === 12) {
+                    playSnare(t + 0.01);
+                }
+            }
+
+            // Driving bass ostinato
+            for (let i = 0; i < 8; i++) {
+                const t = barTime + i * beat * 2;
+                const f = i % 2 === 0 ? root : root * 1.5;
+                playTone(f, t, beat * 1.7, 'square', 0.15);
+            }
+
+            // Urgent lead line
+            for (let i = 0; i < lead.length; i++) {
+                const t = barTime + i * beat * 2;
+                const n = lead[i];
+                playTone(n, t, beat * 1.55, 'sawtooth', 0.12);
+                playTone(n * 0.5, t, beat * 1.55, 'triangle', 0.03);
+            }
+
+            barIndex++;
+            barTime += barDuration;
+            this.musicTimeout = setTimeout(scheduleBar, barDuration * 1000);
+        };
+
+        scheduleBar();
     }
 
     playServantsMusic() {
@@ -463,42 +690,161 @@ class AudioSystem {
         this.currentMusic = { osc, gain };
     }
 
+    playLiminalMusic() {
+        // Soft liminal ambience with a drifting pulse
+        const ctx = this.audioContext;
+        const now = ctx.currentTime;
+
+        const playPad = (freq, start, dur, vol = 0.1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, start);
+
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.6);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + dur);
+        };
+
+        const playPulse = (freq, start) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, start);
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.94, start + 0.8);
+
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * 0.08, start + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.9);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + 0.9);
+        };
+
+        const chords = [
+            [110.00, 164.81, 220.00],
+            [98.00, 146.83, 196.00],
+            [103.83, 155.56, 207.65],
+            [87.31, 130.81, 174.61]
+        ];
+
+        let barTime = now;
+        let barIndex = 0;
+
+        const scheduleBar = () => {
+            const chord = chords[barIndex % chords.length];
+
+            chord.forEach((f, i) => {
+                playPad(f, barTime + i * 0.03, 3.2, 0.09);
+                playPad(f * 2, barTime + i * 0.03 + 0.1, 2.6, 0.03);
+            });
+
+            playPulse(chord[0], barTime + 0.2);
+            playPulse(chord[1], barTime + 1.4);
+            playPulse(chord[0], barTime + 2.3);
+
+            barIndex++;
+            barTime += 3.4;
+            this.musicTimeout = setTimeout(scheduleBar, 3400);
+        };
+
+        scheduleBar();
+    }
+
     playFlightMusic() {
         // Fast-paced danger music
         this.playSpaceCombatMusic(); // Reuse intense beat
     }
 
     playOceanMusic() {
-        // Ethereal, slow underwater music
+        // Dreamy, nostalgic underwater waltz (JRPG-inspired mood)
         const ctx = this.audioContext;
         const now = ctx.currentTime;
 
-        const notes = [130.81, 146.83, 164.81, 196.00, 220.00];
-        let time = now;
-        let noteIndex = 0;
+        const beat = 0.36; // gentle 6/8 pulse
+        const barDuration = beat * 6;
 
-        const playNote = () => {
+        const chords = [
+            [220.00, 277.18, 329.63], // A minor-ish
+            [196.00, 246.94, 329.63], // G major-ish
+            [174.61, 220.00, 293.66], // F major-ish
+            [196.00, 246.94, 329.63]  // G major-ish return
+        ];
+
+        const melodies = [
+            [440.00, 493.88, 523.25, 587.33, 523.25, 493.88],
+            [392.00, 440.00, 493.88, 523.25, 493.88, 440.00],
+            [349.23, 392.00, 440.00, 493.88, 440.00, 392.00],
+            [392.00, 440.00, 493.88, 523.25, 587.33, 523.25]
+        ];
+
+        const bassRoots = [110.00, 98.00, 87.31, 98.00];
+
+        const playNote = (freq, start, dur, type = 'sine', vol = 0.1) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
 
-            osc.frequency.value = notes[noteIndex % notes.length];
-            osc.type = 'sine';
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
 
-            gain.gain.setValueAtTime(0, time);
-            gain.gain.linearRampToValueAtTime(this.musicVolume * 0.2, time + 1);
-            gain.gain.linearRampToValueAtTime(0, time + 4);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, start + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
 
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start(time);
-            osc.stop(time + 4);
-
-            noteIndex++;
-            time += 2;
-            this.musicTimeout = setTimeout(playNote, 2000);
+            osc.start(start);
+            osc.stop(start + dur);
         };
 
-        playNote();
+        let barIndex = 0;
+        let barTime = now;
+
+        const scheduleBar = () => {
+            const chord = chords[barIndex % chords.length];
+            const melody = melodies[barIndex % melodies.length];
+            const root = bassRoots[barIndex % bassRoots.length];
+
+            // Soft pad chord (held)
+            chord.forEach((f, i) => {
+                playNote(f, barTime + i * 0.01, beat * 5.5, 'triangle', 0.065);
+            });
+
+            // Arpeggio pulse in 6/8 feel
+            const arp = [chord[0], chord[1], chord[2], chord[1], chord[2], chord[1]];
+            for (let i = 0; i < 6; i++) {
+                const t = barTime + i * beat;
+                playNote(arp[i], t, beat * 0.72, 'sine', 0.07);
+            }
+
+            // Warm bass anchors
+            for (let i = 0; i < 3; i++) {
+                const t = barTime + i * beat * 2;
+                playNote(root, t, beat * 1.5, 'sine', 0.06);
+            }
+
+            // Lead melody (bell-like)
+            for (let i = 0; i < 6; i++) {
+                const t = barTime + i * beat;
+                const n = melody[i];
+                playNote(n, t + 0.015, beat * 0.78, 'triangle', 0.105);
+            }
+
+            barIndex++;
+            barTime += barDuration;
+            this.musicTimeout = setTimeout(scheduleBar, barDuration * 1000);
+        };
+
+        scheduleBar();
     }
 
     playBossMusic() {
@@ -543,6 +889,160 @@ class AudioSystem {
         playIntense();
     }
 
+    playBossFF9Music() {
+        // Dramatic, heroic boss groove with strong march pulse
+        const ctx = this.audioContext;
+        const now = ctx.currentTime;
+
+        const beat = 0.24; // ~125 BPM
+        const barDuration = beat * 8;
+        const roots = [98.00, 110.00, 123.47, 110.00];
+        const leads = [
+            [392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00, 369.99],
+            [415.30, 466.16, 523.25, 587.33, 523.25, 466.16, 415.30, 392.00],
+            [440.00, 493.88, 523.25, 659.25, 587.33, 523.25, 493.88, 440.00],
+            [392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00, 349.23]
+        ];
+
+        const tone = (freq, t, d, type = 'sawtooth', vol = 0.1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, t + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + d);
+        };
+
+        let bar = now;
+        let i = 0;
+        const schedule = () => {
+            const root = roots[i % roots.length];
+            const lead = leads[i % leads.length];
+
+            for (let s = 0; s < 8; s++) {
+                const t = bar + s * beat;
+                if (s === 0 || s === 3 || s === 4 || s === 6) tone(150, t, 0.11, 'sine', 0.42);
+                tone(s % 2 === 0 ? root : root * 1.5, t, beat * 0.95, 'square', 0.12);
+                tone(lead[s], t, beat * 0.9, 'triangle', 0.1);
+            }
+
+            i++;
+            bar += barDuration;
+            this.musicTimeout = setTimeout(schedule, barDuration * 1000);
+        };
+
+        schedule();
+    }
+
+    playBossFF8Music() {
+        // Darker, urgent synth-orchestral final duel pulse
+        const ctx = this.audioContext;
+        const now = ctx.currentTime;
+
+        const beat = 0.19; // ~158 BPM
+        const barDuration = beat * 16;
+        const roots = [82.41, 92.50, 98.00, 92.50];
+        const lead = [
+            [329.63, 392.00, 466.16, 523.25, 587.33, 523.25, 466.16, 392.00],
+            [311.13, 369.99, 440.00, 493.88, 523.25, 493.88, 440.00, 369.99],
+            [349.23, 415.30, 466.16, 587.33, 523.25, 466.16, 415.30, 349.23],
+            [329.63, 392.00, 440.00, 523.25, 493.88, 440.00, 392.00, 329.63]
+        ];
+
+        const tone = (freq, t, d, type = 'sawtooth', vol = 0.1) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, t + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + d);
+        };
+
+        let bar = now;
+        let i = 0;
+        const schedule = () => {
+            const root = roots[i % roots.length];
+            const phrase = lead[i % lead.length];
+
+            for (let s = 0; s < 16; s++) {
+                const t = bar + s * beat;
+                if (s === 0 || s === 4 || s === 8 || s === 12 || s === 14) tone(160, t, 0.1, 'sine', 0.5);
+                if (s === 4 || s === 12) tone(260, t + 0.01, 0.08, 'triangle', 0.18);
+                tone(s % 2 === 0 ? root : root * 1.5, t, beat * 1.25, 'square', 0.13);
+            }
+
+            for (let n = 0; n < phrase.length; n++) {
+                const t = bar + n * beat * 2;
+                tone(phrase[n], t, beat * 1.45, 'sawtooth', 0.11);
+                tone(phrase[n] * 0.5, t, beat * 1.45, 'triangle', 0.028);
+            }
+
+            i++;
+            bar += barDuration;
+            this.musicTimeout = setTimeout(schedule, barDuration * 1000);
+        };
+
+        schedule();
+    }
+
+    playEndingThemeMusic() {
+        // Bright, playful end theme
+        const ctx = this.audioContext;
+        const now = ctx.currentTime;
+
+        const beat = 0.24;
+        const barDuration = beat * 16;
+        const chords = [
+            [523.25, 659.25, 783.99],
+            [587.33, 739.99, 880.00],
+            [659.25, 830.61, 987.77],
+            [587.33, 739.99, 880.00]
+        ];
+
+        const tone = (freq, t, d, type = 'sine', vol = 0.08) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.linearRampToValueAtTime(this.musicVolume * vol, t + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + d);
+        };
+
+        let bar = now;
+        let i = 0;
+        const schedule = () => {
+            const chord = chords[i % chords.length];
+
+            for (let s = 0; s < 16; s++) {
+                const t = bar + s * beat;
+                if (s % 4 === 0) tone(220, t, 0.18, 'triangle', 0.08);
+                tone(chord[s % chord.length], t, beat * 1.4, 'sine', 0.1);
+                if (s === 8 || s === 12) tone(chord[0] * 2, t + 0.02, 0.12, 'triangle', 0.04);
+            }
+
+            i++;
+            bar += barDuration;
+            this.musicTimeout = setTimeout(schedule, barDuration * 1000);
+        };
+
+        schedule();
+    }
+
     stopMusic(fadeOut = true) {
         if (this.musicTimeout) {
             clearTimeout(this.musicTimeout);
@@ -585,7 +1085,27 @@ class AudioSystem {
             case 'unlock':
                 this.playUnlock(now);
                 break;
+            case 'slam':
+                this.playSlam(now);
+                break;
         }
+    }
+
+    playSlam(time) {
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(160, time);
+        osc.frequency.exponentialRampToValueAtTime(45, time + 0.18);
+
+        gain.gain.setValueAtTime(this.sfxVolume * 0.35, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.22);
+
+        osc.connect(gain);
+        gain.connect(this.audioContext.destination);
+        osc.start(time);
+        osc.stop(time + 0.22);
     }
 
     playBark(time) {
