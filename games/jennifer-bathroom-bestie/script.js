@@ -1,5 +1,37 @@
 // Jennifer Bathroom Bestie - Main Game Script
 
+const JENNIFER_SYSTEM_PROMPT = `You are Jennifer: petty, chaotic, slightly drunk, and aggressively funny. You do not calm people down; you escalate chaos in a jokey way.
+
+Core behavior:
+- Go along with chaos and suggest mischievous, petty ideas as jokes.
+- If the user proposes chaos, agree and escalate with a pettier plan as a joke.
+- Be warm and affectionate toward the user while still being rude about everything else.
+- Be grumpy, blunt, and darkly funny, not cheerful or cutesy.
+- Be self-centered: talk about your own drama first, then respond to theirs.
+- You can admit men are hot, but you are still annoyed by their nonsense.
+- Answer directly and stay on topic.
+- If asked about you/your stuff, answer about YOU first, not the user.
+- "Where is your shoe?" always means Jennifer's missing left shoe.
+- "Your phone" always means Jennifer's phone.
+- Never use the word "player".
+- Never use "baby girl" or call men a "catch".
+- Never use cutesy lines like "hey gorgeous," "welcome to my sanctuary," or "let's take selfies."
+- Never output glued non-hashtag words like "girlsnightout" or "bathroombuddy".
+- No stage directions or action narration.
+- Never include meta labels or instruction text like "as a joke" or "if user proposes chaos" in parentheses.
+- Keep replies 1-3 short sentences.
+
+Backstory anchors (keep consistent):
+- From a made-up rough hometown called Rustwater Hollow; kicked out of multiple places.
+- Ex drama that is absurd and embarrassing.
+- Lost left shoe during a sink-screaming bathroom fight.
+- Drops phone on bathroom floors when mad.
+
+Style requirement:
+- In some replies, include one short anecdotal fact about yourself from this chaotic backstory.
+- If the user asks if they are a mess or what problem exists, answer them directly instead of repeating a generic line.
+- Avoid clichés, hashtags, and markdown.`;
+
 class JenniferGame {
     constructor() {
         this.apiBaseCandidates = [
@@ -7,6 +39,8 @@ class JenniferGame {
             '/api'
         ];
         this.apiBase = this.apiBaseCandidates[0];
+        this.runtimeMode = 'backend';
+        this.publicConfig = null;
         this.conversationHistory = [];
         this.isWaiting = false;
         this.lastJenniferReply = '';
@@ -17,11 +51,23 @@ class JenniferGame {
 
     async init() {
         const ok = await this.checkServerStatus();
+        if (ok) {
+            this.runtimeMode = 'backend';
+            this.startGame();
+            return;
+        }
+
+        const publicReady = await this.loadPublicConfig();
+        if (publicReady) {
+            this.runtimeMode = 'public';
+            this.startGame();
+            return;
+        }
+
         if (!ok) {
             this.showServerPrompt();
             return;
         }
-        this.startGame();
     }
 
     setupEventListeners() {
@@ -41,9 +87,17 @@ class JenniferGame {
     showServerPrompt() {
         const loadingScreen = document.getElementById('loadingScreen');
         loadingScreen.innerHTML = `
-            <h2>Server Setup Required 🛠️</h2>
-            <p>Start Jennifer's private backend so your key stays secret.</p>
+            <h2>Jennifer Setup Required 🛠️</h2>
+            <p>Choose one mode: local backend (private key) or public test mode.</p>
             <div style="margin: 20px 0; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <p><strong>Public test mode (GitHub Pages):</strong></p>
+                <ol>
+                    <li>Open <strong>games/jennifer-bathroom-bestie/config.local.json</strong></li>
+                    <li>Paste your key into <strong>OPENROUTER_API_KEY</strong></li>
+                    <li>Commit + push</li>
+                    <li>Reload this page</li>
+                </ol>
+                <p><strong>Private local mode:</strong></p>
                 <ol>
                     <li>Open <strong>games/jennifer-bathroom-bestie/server</strong></li>
                     <li>Copy <strong>.env.example</strong> to <strong>.env</strong> and paste your OpenRouter key</li>
@@ -60,6 +114,36 @@ class JenniferGame {
                 this.startGame();
             }
         });
+    }
+
+    async loadPublicConfig() {
+        const candidates = ['./config.local.json', 'config.local.json'];
+        for (const path of candidates) {
+            try {
+                const response = await fetch(path, { cache: 'no-store' });
+                if (!response.ok) {
+                    continue;
+                }
+                const config = await response.json();
+                const key = String(config?.OPENROUTER_API_KEY || '').trim();
+                if (!key) {
+                    continue;
+                }
+
+                this.publicConfig = {
+                    key,
+                    model: String(config?.OPENROUTER_MODEL || 'openrouter/auto').trim(),
+                    siteUrl: String(config?.SITE_URL || window.location.origin).trim(),
+                    siteName: String(config?.SITE_NAME || 'Jennifer Bathroom Bestie').trim()
+                };
+
+                return true;
+            } catch (_) {
+                // Try next candidate
+            }
+        }
+
+        return false;
     }
 
     async checkServerStatus() {
@@ -201,6 +285,10 @@ class JenniferGame {
     }
 
     async getJenniferResponse(playerMessage) {
+        if (this.runtimeMode === 'public') {
+            return this.getJenniferResponsePublic(playerMessage);
+        }
+
         const messages = [
             ...this.conversationHistory.map(msg => ({
                 role: msg.speaker === 'Jennifer' ? 'assistant' : 'user',
@@ -226,6 +314,45 @@ class JenniferGame {
 
         const data = await response.json();
         return data.reply;
+    }
+
+    async getJenniferResponsePublic(playerMessage) {
+        const messages = [
+            { role: 'system', content: JENNIFER_SYSTEM_PROMPT },
+            ...this.conversationHistory.map(msg => ({
+                role: msg.speaker === 'Jennifer' ? 'assistant' : 'user',
+                content: msg.text
+            })),
+            { role: 'user', content: playerMessage }
+        ];
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.publicConfig.key}`,
+                'HTTP-Referer': this.publicConfig.siteUrl,
+                'X-Title': this.publicConfig.siteName
+            },
+            body: JSON.stringify({
+                model: this.publicConfig.model,
+                messages,
+                temperature: 1.0,
+                max_tokens: 500
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data?.error?.message || 'OpenRouter request failed.');
+        }
+
+        const reply = data?.choices?.[0]?.message?.content?.trim() || '';
+        if (!reply) {
+            throw new Error('No reply from model.');
+        }
+
+        return this.clampJenniferText(reply);
     }
 
     returnToMenu() {
