@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jennifer's Bathroom</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer" class="game-container">
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen">
+            <h2>Jennifer's Bathroom 🚽</h2>
+            <p>Loading your new best friend...</p>
+        </div>
+
+        <!-- Main Game View -->
+        <div id="gameView" class="game-view" style="display: none;">
+            <!-- First Person Bathroom View -->
+            <div class="bathroom-scene">
+                <div class="scene-main-row">
+                    <!-- Jennifer Character -->
+                    <div class="jennifer-container">
+                        <div class="jennifer-character">
+                            <div class="jennifer-silhouette">
+                                <div class="jennifer-hair"></div>
+                                <div class="jennifer-face"></div>
+                                <div class="jennifer-brows"></div>
+                                <div class="jennifer-eyes"></div>
+                                <div class="jennifer-liner"></div>
+                                <div class="jennifer-nose"></div>
+                                <div class="jennifer-lips"></div>
+                                <div class="jennifer-cheek left"></div>
+                                <div class="jennifer-cheek right"></div>
+                                <div class="jennifer-arm left"></div>
+                                <div class="jennifer-arm right"></div>
+                                <div class="jennifer-body"></div>
+                                <div class="jennifer-leg left"></div>
+                                <div class="jennifer-leg right"></div>
+                                <div class="jennifer-phone">📱</div>
+                            </div>
+                        </div>
+                        <div id="thinkingBubble" class="thinking-bubble" aria-live="polite">
+                            Ughhh hold up bestie... my tequilla brain is buffering 🍸🫠
+                        </div>
+                        <div class="jennifer-label">Jennifer</div>
+                    </div>
+
+                    <!-- Jennifer's Speech Bubble -->
+                    <div class="dialogue-box">
+                        <div class="jennifer-dialogue">
+                            <p id="jenniferText">Yeah hi, I lost my left shoe and my patience. What happened?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Input Area -->
+            <div class="input-area">
+                <div class="player-prompt">You:</div>
+                <div class="input-container">
+                    <input
+                        type="text"
+                        id="playerInput"
+                        class="player-input"
+                        placeholder="Type your response..."
+                        autocomplete="off"
+                    >
+                    <button id="sendButton" class="send-button">Send</button>
+                </div>
+                <div class="conversation-history">
+                    <div id="conversationLog" class="log-content"></div>
+                </div>
+            </div>
+
+            <!-- Menu Button -->
+            <button id="backButton" class="back-button">← Back to Menu</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
