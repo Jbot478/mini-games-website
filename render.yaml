@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: jennifer-backend
+    runtime: node
+    rootDir: games/jennifer-bathroom-bestie/server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openrouter/auto
+      - key: SITE_URL
+        sync: false
+      - key: SITE_NAME
+        value: Jennifer Bathroom Bestie
+      - key: FRONTEND_ORIGIN
+        value: https://jbot478.github.io

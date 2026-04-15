@@ -1,7 +1,10 @@
 # Local secrets
-# Note: .env is intentionally committed for testing purposes.
-# In production, use a dedicated backend server with environment variables.
+.env
 .env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
 
 # Node dependencies
 node_modules/

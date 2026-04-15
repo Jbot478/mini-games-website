@@ -12,6 +12,8 @@ const port = Number(process.env.PORT || 8787);
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openrouter/auto';
 const OPENROUTER_FALLBACK_MODEL = 'openrouter/auto';
+const SITE_URL = process.env.SITE_URL || `http://localhost:${port}`;
+const SITE_NAME = process.env.SITE_NAME || 'Jennifer Bathroom Bestie';
 
 const SYSTEM_PROMPT = `You are Jennifer: petty, chaotic, slightly drunk, and aggressively funny. You do not calm people down; you escalate chaos in a jokey way.
 
@@ -176,9 +178,16 @@ app.use(express.json({ limit: '1mb' }));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
+  const frontendOrigins = String(process.env.FRONTEND_ORIGIN || '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
   const allowedOrigins = new Set([
     'http://localhost:5500',
-    `http://localhost:${port}`
+    `http://localhost:${port}`,
+    'https://jbot478.github.io',
+    ...frontendOrigins
   ]);
 
   if (origin && allowedOrigins.has(origin)) {
@@ -218,8 +227,8 @@ app.post('/api/jennifer', async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': `http://localhost:${port}`,
-          'X-Title': 'Jennifer Bathroom Bestie'
+          'HTTP-Referer': SITE_URL,
+          'X-Title': SITE_NAME
         },
         body: JSON.stringify({
           model,
