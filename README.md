@@ -1,6 +1,17 @@
 # mini-games-website
 A website to play mini games
 
+## What is this repo?
+
+This repo holds the mini-games website. Most of the games are simple static pages. Jennifer is the special one because she talks to an AI backend.
+
+## Current Jennifer status
+
+- Jennifer is still on the homepage.
+- Her card is clickable.
+- The homepage note says she is on a little nap break while the backend/public setup is being sorted out.
+- The code for Jennifer is still here for local play and future public deployment.
+
 ## Jennifer public deployment (GitHub Pages + backend)
 
 Jennifer needs a backend server for AI responses. The frontend can stay on GitHub Pages, but the OpenRouter key must stay on the backend.
