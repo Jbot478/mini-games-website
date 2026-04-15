@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Kind of Menace Are You?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Intro Screen -->
+        <div id="introScreen" class="screen active">
+            <button id="backButtonIntro" class="back-button">← Back</button>
+            <div class="intro-content">
+                <h1>What Kind of Menace to Society Are You?</h1>
+                <p class="subtitle">A casual personality quiz about your everyday chaos</p>
+                <div class="intro-description">
+                    <p>Ever wondered what archetype of everyday chaos best describes you? Maybe you're the kind of person who creates traffic just by existing on the sidewalk, or perhaps you're a walking natural disaster magnet.</p>
+                    <p>Find out in this quick, quirky quiz. Just answer a few simple questions and discover your type of harmless menace.</p>
+                    <p><strong>Takes about 2 minutes.</strong></p>
+                </div>
+                <button id="startButton" class="start-button">Start Quiz</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="screen">
+            <button id="backButtonQuiz" class="back-button">← Back</button>
+            <div class="quiz-content">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <h2 id="questionTitle">Question</h2>
+                <p id="questionText"></p>
+                <div id="answersContainer" class="answers-container"></div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="resultScreen" class="screen">
+            <button id="backButtonResult" class="back-button">← Back</button>
+            <div class="result-content">
+                <h1>Your Menace Type</h1>
+                <div class="result-card">
+                    <div class="result-emoji" id="resultEmoji"></div>
+                    <h2 id="resultTitle"></h2>
+                    <p id="resultDescription"></p>
+                </div>
+                <div class="button-group">
+                    <button id="retakeButton" class="retake-button">Retake Quiz</button>
+                    <button id="homeButton" class="home-button">Back to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
