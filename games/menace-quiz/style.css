@@ -4,27 +4,95 @@
     box-sizing: border-box;
 }
 
+:root {
+    --accent-primary: #ff4f9f;
+    --accent-secondary: #00cdb5;
+    --accent-ink: #1a3e66;
+    --accent-soft: rgba(255, 79, 159, 0.14);
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    background: linear-gradient(-45deg, #ff4fa2, #4f46ff, #00d9b8);
+    background-size: 280% 280%;
+    animation: chaosShift 22s ease infinite;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+body::before {
+    background:
+        radial-gradient(34% 40% at 20% 30%, rgba(255, 79, 162, 0.48) 0%, rgba(255, 79, 162, 0) 72%),
+        radial-gradient(36% 42% at 76% 24%, rgba(79, 70, 255, 0.46) 0%, rgba(79, 70, 255, 0) 72%),
+        radial-gradient(32% 40% at 68% 78%, rgba(0, 217, 184, 0.42) 0%, rgba(0, 217, 184, 0) 72%);
+    filter: blur(28px);
+    opacity: 0.58;
+    animation: neonBlobDrift 24s ease-in-out infinite;
+}
+
+body::after {
+    background-image:
+        radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.45) 0 3px, transparent 4px),
+        radial-gradient(circle at 34% 70%, rgba(95, 198, 255, 0.4) 0 3px, transparent 4px),
+        radial-gradient(circle at 66% 40%, rgba(255, 121, 198, 0.42) 0 3px, transparent 4px),
+        radial-gradient(circle at 84% 18%, rgba(126, 255, 196, 0.4) 0 3px, transparent 4px);
+    background-size: 260px 260px;
+    opacity: 0.22;
+    animation: confettiDrift 24s linear infinite;
+}
+
+@keyframes chaosShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes neonBlobDrift {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    }
+    50% {
+        transform: translate3d(1%, -1.2%, 0) scale(1.06) rotate(2deg);
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    }
+}
+
+@keyframes confettiDrift {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: -140px 140px;
+    }
 }
 
 .container {
     width: 100%;
     max-width: 600px;
+    position: relative;
+    z-index: 1;
 }
 
 .screen {
@@ -67,15 +135,16 @@ body {
 
 /* Intro Screen */
 .intro-content {
-    background: white;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(14, 18, 55, 0.28);
     text-align: center;
 }
 
 .intro-content h1 {
-    color: #667eea;
+    color: var(--accent-ink);
     font-size: 2.2rem;
     margin-bottom: 10px;
     line-height: 1.2;
@@ -99,11 +168,11 @@ body {
 }
 
 .intro-description p strong {
-    color: #667eea;
+    color: var(--accent-primary);
 }
 
 .start-button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
     color: white;
     border: none;
     padding: 15px 50px;
@@ -112,20 +181,21 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 79, 159, 0.35);
 }
 
 .start-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 6px 20px rgba(0, 205, 181, 0.38);
 }
 
 /* Quiz Screen */
 .quiz-content {
-    background: white;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(14, 18, 55, 0.28);
 }
 
 .progress-bar {
@@ -139,7 +209,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
     transition: width 0.4s ease;
 }
 
@@ -178,30 +248,31 @@ body {
 }
 
 .answer-button:hover {
-    background: #667eea;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
     color: white;
-    border-color: #667eea;
+    border-color: transparent;
     transform: translateX(5px);
 }
 
 /* Result Screen */
 .result-content {
-    background: white;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(14, 18, 55, 0.28);
     text-align: center;
 }
 
 .result-content h1 {
-    color: #667eea;
+    color: var(--accent-ink);
     font-size: 2rem;
     margin-bottom: 30px;
 }
 
 .result-card {
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-    border: 2px solid #667eea;
+    background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(0, 205, 181, 0.14) 100%);
+    border: 2px solid var(--accent-primary);
     padding: 30px;
     border-radius: 16px;
     margin-bottom: 30px;
@@ -221,7 +292,7 @@ body {
 }
 
 .result-card h2 {
-    color: #667eea;
+    color: var(--accent-ink);
     font-size: 1.8rem;
     margin-bottom: 15px;
 }
@@ -251,14 +322,14 @@ body {
 }
 
 .retake-button {
-    background: #667eea;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 79, 159, 0.35);
 }
 
 .retake-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    box-shadow: 0 6px 20px rgba(0, 205, 181, 0.38);
 }
 
 .home-button {

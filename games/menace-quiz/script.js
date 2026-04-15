@@ -122,18 +122,18 @@ const quizData = {
     archetypes: {
         sidewalk: {
             name: "The Sidewalk Traffic Jam",
-            emoji: "🧍",
-            description: "You don't mean to create human gridlock wherever you go, but somehow your mere presence requires navigation around you. You're not rude—you're just inherently a traffic incident. People see you coming and calculate alternate routes."
+            emoji: "🚶",
+            description: "AKA: The Slow Walker. You don't mean to create human gridlock wherever you go, but somehow your presence requires active navigation around you. You're not rude, you're just inherently a traffic incident. People see you coming and start calculating alternate routes. Please don't walk in horizontal groups."
         },
         lecture: {
             name: "The Unsolicited Lecture Gremlin",
             emoji: "🤓",
-            description: "You have strong opinions and an even stronger need to share them. Whether someone asked or not, they're getting the full educational experience. You're not mean, just persistently informative. You have Wikipedia open in your soul at all times."
+            description: "You have strong opinions and an even stronger need to explain things no one asked about. Your whole vibe is accidental mansplaining with bonus confidence. You don't mean harm, but your TED Talk energy appears on command. You have Wikipedia open in your soul at all times."
         },
         broadcast: {
             name: "The Public Broadcast Goblin",
             emoji: "📢",
-            description: "Your thoughts are not private. Your voice is not inside. Every random observation gets shared with the general public at full volume. You're like a living social media feed with no off switch. People three rooms over know what you think about the avocado selection."
+            description: "Your thoughts are not private. Your voice is not inside. Every random observation gets shared with the general public at full volume. You're like a living social media feed with no off switch. People three rooms over know what you think about avocado toast."
         },
         character: {
             name: "The Main Character Overflow",
@@ -142,22 +142,22 @@ const quizData = {
         },
         sidequest: {
             name: "The Topic Side Quest Explorer",
-            emoji: "🗺️",
+            emoji: "🧝",
             description: "You cannot stay on topic. Ever. One mention of tacos spirals into a 20-minute tangent about your cousin's road trip. Your conversations are like RPGs—nobody knows where they're going, but everyone's along for the ride. You are the definition of 'actually, that reminds me...'"
         },
         misplace: {
             name: "The Misplacement Magician",
-            emoji: "✨",
-            description: "You have a supernatural ability to lose things. Keys, phones, thoughts, entire conversations—they all vanish into the void around you. You're not scatterbrained; you're operating at a higher dimension where objects just cease to exist. Finding things you lost is a full quest."
+            emoji: "🪄",
+            description: "You have a supernatural ability to lose things. Keys, phones, thoughts, entire conversations—they all vanish into the void around you. You're not scatterbrained; you're operating at a higher dimension where objects just cease to exist. Retracing your steps is basically your cardio."
         },
         manager: {
             name: "The Manager Summoner",
             emoji: "👔",
-            description: "Something about your presence makes people want to escalate situations to a manager. You don't try—it just happens. You could be peacefully existing, and suddenly a supervisor appears. You're not a Karen, but Karen's energy follows you everywhere."
+            description: "You have strong 'can I speak to the manager?' energy, and yes, there's a little Karen in the mix. But your friends secretly appreciate you when they're too shy to tell the waiter that they actually ordered chicken nuggies. You escalate with purpose."
         },
         magnet: {
             name: "The Unfortunate Situation Magnet",
-            emoji: "⚡",
+            emoji: "🧲",
             description: "Chaos follows you like a loyal pet. You don't start the drama, but you're always nearby when it happens. Things just go wrong in your vicinity. You're not unlucky—you're just naturally aligned with disorder. Disaster feels drawn to you."
         }
     }
