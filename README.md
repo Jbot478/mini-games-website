@@ -1,47 +1,42 @@
 # mini-games-website
-A website to play mini games
+Mini games website
 
-## What is this repo?
+This repo holds a small collection of browser games. Most of them are plain static pages. Jennifer is the only one that needs a backend because she talks to OpenRouter.
 
-This repo holds the mini-games website. Most of the games are simple static pages. Jennifer is the special one because she talks to an AI backend.
+## What to expect
 
-## Current Jennifer status
+- The homepage still shows Jennifer.
+- You can still click into her game.
+- If the backend is not running, Jennifer will show a setup message instead of breaking the rest of the site.
 
-- Jennifer is still on the homepage.
-- Her card is clickable.
-- The homepage note says she is on a little nap break while the backend/public setup is being sorted out.
-- The code for Jennifer is still here for local play and future public deployment.
+## Jennifer setup
 
-## Jennifer public deployment (GitHub Pages + backend)
+There are two ways to run Jennifer:
 
-Jennifer needs a backend server for AI responses. The frontend can stay on GitHub Pages, but the OpenRouter key must stay on the backend.
+### Local
 
-### 1) Deploy backend
+Run the backend from [games/jennifer-bathroom-bestie/server](games/jennifer-bathroom-bestie/server), then open the site on your computer.
 
-This repo includes [render.yaml](render.yaml) for Render.
+### Public
 
-- Create a new Render service from this repo.
-- Render will pick [render.yaml](render.yaml) automatically.
-- In Render environment variables, set:
-	- `OPENROUTER_API_KEY` = your active key
-	- `SITE_URL` = your Render backend URL (example: `https://jennifer-backend.onrender.com`)
+If you want Jennifer available online, the backend needs to run on a hosting service and the OpenRouter key must stay there, not in the browser.
 
-The rest can use defaults from [games/jennifer-bathroom-bestie/server/.env.example](games/jennifer-bathroom-bestie/server/.env.example).
+This repo includes [render.yaml](render.yaml) for that setup.
 
-### 2) Point frontend to backend
+Basic flow:
 
-Edit [games/jennifer-bathroom-bestie/config.local.json](games/jennifer-bathroom-bestie/config.local.json):
+1. Create a Render service from this repo.
+2. Let Render read [render.yaml](render.yaml).
+3. Add `OPENROUTER_API_KEY` in the Render environment settings.
+4. Set `SITE_URL` to the public backend URL.
+5. Put that backend URL into [games/jennifer-bathroom-bestie/config.local.json](games/jennifer-bathroom-bestie/config.local.json) as `API_BASE_URL`.
 
-- `API_BASE_URL` = your backend URL (without `/api`)
+Jennifer’s backend template lives in [games/jennifer-bathroom-bestie/server/.env.example](games/jennifer-bathroom-bestie/server/.env.example).
 
-Example:
+## If Jennifer is not working
 
-`{ "API_BASE_URL": "https://jennifer-backend.onrender.com" }`
+- Check that the backend is running.
+- Check that `API_BASE_URL` points to the right place.
+- Check the backend health route: `/api/health`.
 
-Then commit and push.
-
-### 3) Verify
-
-- Backend health: `https://your-backend-domain/api/health`
-- Jennifer page should connect without local setup prompts.
-
+If you just want to browse the other games, they do not need any setup.
