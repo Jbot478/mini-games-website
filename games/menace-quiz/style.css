@@ -6,12 +6,20 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .container {
@@ -197,6 +205,19 @@ body {
     padding: 30px;
     border-radius: 16px;
     margin-bottom: 30px;
+    text-align: center;
+}
+
+.result-emoji {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    display: block;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 .result-card h2 {
