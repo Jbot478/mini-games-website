@@ -276,6 +276,16 @@ class Player {
         return player;
     }
 
+    setFacing(direction) {
+        if (direction === 0) return;
+
+        const newFacing = direction > 0 ? 1 : -1;
+        if (newFacing !== this.facing) {
+            this.facing = newFacing;
+            this.element.style.setProperty('--facing', this.facing);
+        }
+    }
+
     update(opponent) {
         if (gameState.paused) return;
 
@@ -299,20 +309,18 @@ class Player {
         this.x += this.velocityX;
         this.velocityX *= 0.85; // Friction
 
+        // Face movement direction for cleaner walking animation
+        if (Math.abs(this.velocityX) > 0.1) {
+            this.setFacing(this.velocityX);
+        }
+
         // Boundaries
         if (this.x < 50) this.x = 50;
         if (this.x > window.innerWidth - 150) this.x = window.innerWidth - 150;
 
-        // Face opponent
-        if (opponent) {
-            this.facing = this.x < opponent.x ? 1 : -1;
-            this.element.style.setProperty('--facing', this.facing);
-        }
-
         // Update position
         this.element.style.left = this.x + 'px';
         this.element.style.bottom = (120 - this.y) + 'px';
-        // Characters naturally face each other based on emoji direction
 
         // AI behavior
         if (this.isAI && !gameState.paused) {
@@ -357,11 +365,13 @@ class Player {
 
     move(direction) {
         if (!this.grounded || this.blocking) return;
+        this.setFacing(direction);
         this.velocityX = direction * 8;
     }
 
     jump(direction = 0) {
         if (this.jumpCount < 2 && !this.blocking) {
+            this.setFacing(direction);
             this.velocityY = -15;
             this.velocityX = direction * 10;
             this.grounded = false;

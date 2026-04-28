@@ -786,6 +786,7 @@ body::before {
 .player-sprite {
     font-size: 5rem;
     filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.5));
+    transform: scaleX(var(--facing));
 }
 
 .player.attacking .player-sprite {
@@ -793,8 +794,8 @@ body::before {
 }
 
 @keyframes attackJolt {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(15px); }
+    0%, 100% { transform: scaleX(var(--facing)) translateX(0); }
+    50% { transform: scaleX(var(--facing)) translateX(15px); }
 }
 
 .player.blocking .player-sprite {
@@ -803,9 +804,9 @@ body::before {
 }
 
 @keyframes blockShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+    0%, 100% { transform: scaleX(var(--facing)) translateX(0); }
+    25% { transform: scaleX(var(--facing)) translateX(-5px); }
+    75% { transform: scaleX(var(--facing)) translateX(5px); }
 }
 
 .player.jumping .player-sprite {
