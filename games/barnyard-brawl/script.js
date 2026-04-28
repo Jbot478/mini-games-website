@@ -255,7 +255,7 @@ class Player {
         this.velocityY = 0;
         this.velocityX = 0;
         this.grounded = true;
-        this.facing = playerNum === 1 ? 1 : -1;
+        this.facing = playerNum === 1 ? -1 : 1;
         this.blocking = false;
         this.attacking = false;
         this.jumpCount = 0;
@@ -264,6 +264,32 @@ class Player {
 
         this.element = this.createElement();
         this.keys = {};
+
+        this.aiSettings = {
+            randomMoveChance: 0.02,
+            randomMoveStrength: 10,
+            approachChance: 0.1,
+            approachSpeed: 5,
+            jumpChance: 0.02,
+            attackChance: 0.05,
+            specialChance: 0.01,
+            blockChance: 0.3,
+            damageScale: 1
+        };
+
+        if (this.isAI && gameState.mode === 1) {
+            this.aiSettings = {
+                randomMoveChance: 0.014,
+                randomMoveStrength: 8,
+                approachChance: 0.07,
+                approachSpeed: 4,
+                jumpChance: 0.012,
+                attackChance: 0.03,
+                specialChance: 0.006,
+                blockChance: 0.18,
+                damageScale: 0.78
+            };
+        }
     }
 
     createElement() {
@@ -279,7 +305,7 @@ class Player {
     setFacing(direction) {
         if (direction === 0) return;
 
-        const newFacing = direction > 0 ? 1 : -1;
+        const newFacing = direction > 0 ? -1 : 1;
         if (newFacing !== this.facing) {
             this.facing = newFacing;
             this.element.style.setProperty('--facing', this.facing);
@@ -331,34 +357,35 @@ class Player {
     aiThink(opponent) {
         const distance = Math.abs(this.x - opponent.x);
         const now = Date.now();
+        const ai = this.aiSettings;
 
         // Random movement
-        if (Math.random() < 0.02) {
-            this.velocityX = (Math.random() - 0.5) * 10;
+        if (Math.random() < ai.randomMoveChance) {
+            this.velocityX = (Math.random() - 0.5) * ai.randomMoveStrength;
         }
 
         // Move toward opponent
-        if (distance > 150 && Math.random() < 0.1) {
-            this.velocityX = (opponent.x > this.x ? 1 : -1) * 5;
+        if (distance > 150 && Math.random() < ai.approachChance) {
+            this.velocityX = (opponent.x > this.x ? 1 : -1) * ai.approachSpeed;
         }
 
         // Jump randomly
-        if (this.grounded && Math.random() < 0.02) {
+        if (this.grounded && Math.random() < ai.jumpChance) {
             this.jump();
         }
 
         // Attack when close
-        if (distance < 150 && Math.random() < 0.05) {
+        if (distance < 150 && Math.random() < ai.attackChance) {
             this.attack(opponent);
         }
 
         // Special attack occasionally
-        if (distance < 200 && Math.random() < 0.01 && now - this.lastSpecialTime > 3000) {
+        if (distance < 200 && Math.random() < ai.specialChance && now - this.lastSpecialTime > 3000) {
             this.specialAttack(opponent);
         }
 
         // Block occasionally
-        if (opponent.attacking && Math.random() < 0.3) {
+        if (opponent.attacking && Math.random() < ai.blockChance) {
             this.block();
         }
     }
@@ -447,6 +474,11 @@ class Player {
         if (opponent.invincible) return;
 
         let finalDamage = damage;
+
+        if (this.isAI) {
+            finalDamage *= this.aiSettings.damageScale;
+        }
+
         if (opponent.blocking) {
             finalDamage *= 0.3; // Block reduces damage
         } else {
